@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="900" viewBox="0 0 1500 900">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#334155" />
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1500" height="900" fill="#f8fafc" />
+
+<text x="60" y="40" font-family="Segoe UI, Arial" font-size="20" fill="#0f172a">Диаграмма 6. Sequence: добавить запись и получить анализ</text>
+<rect x="70" y="70" width="140" height="60" rx="10" ry="10" fill="#ecfeff" stroke="#334155" stroke-width="1.5"/>
+<text x="140.0" y="94" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">User</text>
+<line x1="140" y1="130" x2="140" y2="860" stroke="#94a3b8" stroke-dasharray="6 6"/>
+<rect x="290" y="70" width="140" height="60" rx="10" ry="10" fill="#ecfeff" stroke="#334155" stroke-width="1.5"/>
+<text x="360.0" y="94" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Web UI</text>
+<line x1="360" y1="130" x2="360" y2="860" stroke="#94a3b8" stroke-dasharray="6 6"/>
+<rect x="510" y="70" width="140" height="60" rx="10" ry="10" fill="#ecfeff" stroke="#334155" stroke-width="1.5"/>
+<text x="580.0" y="94" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Diary service</text>
+<line x1="580" y1="130" x2="580" y2="860" stroke="#94a3b8" stroke-dasharray="6 6"/>
+<rect x="750" y="70" width="140" height="60" rx="10" ry="10" fill="#ecfeff" stroke="#334155" stroke-width="1.5"/>
+<text x="820.0" y="94" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">EntryRepository</text>
+<line x1="820" y1="130" x2="820" y2="860" stroke="#94a3b8" stroke-dasharray="6 6"/>
+<rect x="1010" y="70" width="140" height="60" rx="10" ry="10" fill="#ecfeff" stroke="#334155" stroke-width="1.5"/>
+<text x="1080.0" y="94" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Analytics</text>
+<line x1="1080" y1="130" x2="1080" y2="860" stroke="#94a3b8" stroke-dasharray="6 6"/>
+<rect x="1250" y="70" width="140" height="60" rx="10" ry="10" fill="#ecfeff" stroke="#334155" stroke-width="1.5"/>
+<text x="1320.0" y="94" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">AI adapter</text>
+<line x1="1320" y1="130" x2="1320" y2="860" stroke="#94a3b8" stroke-dasharray="6 6"/>
+<line x1="140" y1="180" x2="360" y2="180" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="250.0" y="174.0" text-anchor="middle" font-family="Segoe UI, Arial" font-size="12" fill="#1e293b">Ввод + Save</text>
+<line x1="360" y1="230" x2="580" y2="230" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="470.0" y="224.0" text-anchor="middle" font-family="Segoe UI, Arial" font-size="12" fill="#1e293b">sendEntry(data)</text>
+<line x1="580" y1="280" x2="820" y2="280" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="700.0" y="274.0" text-anchor="middle" font-family="Segoe UI, Arial" font-size="12" fill="#1e293b">save(entry)</text>
+<line x1="820" y1="330" x2="580" y2="330" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="700.0" y="324.0" text-anchor="middle" font-family="Segoe UI, Arial" font-size="12" fill="#1e293b">ok</text>
+<line x1="580" y1="380" x2="1080" y2="380" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="830.0" y="374.0" text-anchor="middle" font-family="Segoe UI, Arial" font-size="12" fill="#1e293b">buildAnalysis(userId)</text>
+<line x1="1080" y1="430" x2="820" y2="430" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="950.0" y="424.0" text-anchor="middle" font-family="Segoe UI, Arial" font-size="12" fill="#1e293b">listByUser(userId)</text>
+<line x1="820" y1="480" x2="1080" y2="480" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="950.0" y="474.0" text-anchor="middle" font-family="Segoe UI, Arial" font-size="12" fill="#1e293b">entries</text>
+<line x1="1080" y1="530" x2="1320" y2="530" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="1200.0" y="524.0" text-anchor="middle" font-family="Segoe UI, Arial" font-size="12" fill="#1e293b">enrichAnalysis(entries)</text>
+<line x1="1320" y1="580" x2="1080" y2="580" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="1200.0" y="574.0" text-anchor="middle" font-family="Segoe UI, Arial" font-size="12" fill="#1e293b">result/fallback</text>
+<line x1="1080" y1="630" x2="580" y2="630" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="830.0" y="624.0" text-anchor="middle" font-family="Segoe UI, Arial" font-size="12" fill="#1e293b">analysis report</text>
+<line x1="580" y1="680" x2="360" y2="680" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="470.0" y="674.0" text-anchor="middle" font-family="Segoe UI, Arial" font-size="12" fill="#1e293b">success + report</text>
+<line x1="360" y1="730" x2="140" y2="730" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="250.0" y="724.0" text-anchor="middle" font-family="Segoe UI, Arial" font-size="12" fill="#1e293b">показ аналитики</text>
+</svg>

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#334155" />
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1400" height="900" fill="#f8fafc" />
+
+<rect x="60" y="70" width="180" height="90" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="150.0" y="94" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">User</text>
+<rect x="330" y="70" width="180" height="90" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="420.0" y="94" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Entry</text>
+<rect x="600" y="70" width="200" height="90" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="700.0" y="94" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Analysis</text>
+<rect x="900" y="70" width="240" height="90" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="1020.0" y="94" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Recommendation</text>
+<rect x="1220" y="70" width="150" height="90" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="1295.0" y="94" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Specialist</text>
+<rect x="330" y="260" width="180" height="90" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="420.0" y="284" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">ForumPost</text>
+<rect x="600" y="260" width="180" height="90" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="690.0" y="284" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Article</text>
+<line x1="240" y1="115" x2="330" y2="115" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="285.0" y="109.0" text-anchor="middle" font-family="Segoe UI, Arial" font-size="12" fill="#1e293b">creates</text>
+<line x1="510" y1="115" x2="600" y2="115" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="555.0" y="109.0" text-anchor="middle" font-family="Segoe UI, Arial" font-size="12" fill="#1e293b">used in</text>
+<line x1="800" y1="115" x2="900" y2="115" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="850.0" y="109.0" text-anchor="middle" font-family="Segoe UI, Arial" font-size="12" fill="#1e293b">produces</text>
+<line x1="1140" y1="115" x2="1220" y2="115" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="1180.0" y="109.0" text-anchor="middle" font-family="Segoe UI, Arial" font-size="12" fill="#1e293b">suggests</text>
+<line x1="420" y1="160" x2="420" y2="260" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="420.0" y="204.0" text-anchor="middle" font-family="Segoe UI, Arial" font-size="12" fill="#1e293b">writes</text>
+<line x1="510" y1="305" x2="600" y2="305" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="555.0" y="299.0" text-anchor="middle" font-family="Segoe UI, Arial" font-size="12" fill="#1e293b">references</text>
+<text x="60" y="30" font-family="Segoe UI, Arial" font-size="20" fill="#0f172a">Диаграмма 1. Модель анализа вариантов использования</text>
+</svg>

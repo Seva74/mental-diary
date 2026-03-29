@@ -1,0 +1,13 @@
+{
+  "name": "mental-diary-prototype",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace @mental-diary/api && npm run build --workspace @mental-diary/web",
+    "dev:api": "npm run dev --workspace @mental-diary/api",
+    "dev:web": "npm run dev --workspace @mental-diary/web",
+    "test": "npm run test --workspace @mental-diary/api"
+  }
+}

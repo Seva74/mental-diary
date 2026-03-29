@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300" height="950" viewBox="0 0 1300 950">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#334155" />
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1300" height="950" fill="#f8fafc" />
+
+<text x="60" y="40" font-family="Segoe UI, Arial" font-size="20" fill="#0f172a">Диаграмма 7. Activity для рекомендаций</text>
+<rect x="500" y="80" width="260" height="70" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="630.0" y="104" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Старт</text>
+<rect x="500" y="170" width="260" height="70" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="630.0" y="194" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Собрать данные</text>
+<rect x="500" y="260" width="260" height="70" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="630.0" y="284" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Посчитать тренд</text>
+<rect x="500" y="350" width="260" height="70" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="630.0" y="374" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Есть риск?</text>
+<rect x="220" y="450" width="260" height="70" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="350.0" y="474" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Сформировать
+обычные советы</text>
+<rect x="780" y="450" width="260" height="70" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="910.0" y="474" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Запросить
+AI-рекомендацию</text>
+<rect x="780" y="560" width="260" height="70" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="910.0" y="584" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">AI доступен?</text>
+<rect x="620" y="670" width="260" height="70" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="750.0" y="694" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Fallback на
+локальные правила</text>
+<rect x="940" y="670" width="260" height="70" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="1070.0" y="694" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Получить
+расширенный ответ</text>
+<rect x="780" y="790" width="260" height="70" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="910.0" y="814" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Показать советы
+пользователю</text>
+<rect x="780" y="880" width="260" height="70" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="910.0" y="904" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Конец</text>
+<line x1="630" y1="150" x2="630" y2="170" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="630" y1="240" x2="630" y2="260" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="630" y1="330" x2="630" y2="350" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="500" y1="385" x2="350" y2="485" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="425.0" y="429.0" text-anchor="middle" font-family="Segoe UI, Arial" font-size="12" fill="#1e293b">нет</text>
+<line x1="760" y1="385" x2="910" y2="485" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="835.0" y="429.0" text-anchor="middle" font-family="Segoe UI, Arial" font-size="12" fill="#1e293b">да</text>
+<line x1="910" y1="520" x2="910" y2="560" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="760" y1="595" x2="750" y2="705" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="755.0" y="644.0" text-anchor="middle" font-family="Segoe UI, Arial" font-size="12" fill="#1e293b">нет</text>
+<line x1="1020" y1="595" x2="1070" y2="705" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="1045.0" y="644.0" text-anchor="middle" font-family="Segoe UI, Arial" font-size="12" fill="#1e293b">да</text>
+<line x1="750" y1="740" x2="900" y2="825" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="1070" y1="740" x2="900" y2="825" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="910" y1="860" x2="910" y2="880" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+</svg>

@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="900" viewBox="0 0 1500 900">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#334155" />
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1500" height="900" fill="#f8fafc" />
+
+<rect x="60" y="120" width="180" height="80" rx="10" ry="10" fill="#ecfeff" stroke="#334155" stroke-width="1.5"/>
+<text x="150.0" y="144" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Пользователь</text>
+<rect x="60" y="320" width="180" height="80" rx="10" ry="10" fill="#ecfeff" stroke="#334155" stroke-width="1.5"/>
+<text x="150.0" y="344" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Специалист</text>
+<rect x="60" y="520" width="180" height="80" rx="10" ry="10" fill="#ecfeff" stroke="#334155" stroke-width="1.5"/>
+<text x="150.0" y="544" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Администратор</text>
+<rect x="1260" y="220" width="180" height="80" rx="10" ry="10" fill="#ecfeff" stroke="#334155" stroke-width="1.5"/>
+<text x="1350.0" y="244" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">AI-сервис</text>
+<rect x="1260" y="420" width="180" height="80" rx="10" ry="10" fill="#ecfeff" stroke="#334155" stroke-width="1.5"/>
+<text x="1350.0" y="444" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Сервис
+специалистов</text>
+<rect x="420" y="80" width="340" height="70" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="590.0" y="104" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Ввод ежедневной записи</text>
+<rect x="420" y="180" width="340" height="70" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="590.0" y="204" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Просмотр аналитики</text>
+<rect x="420" y="280" width="340" height="70" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="590.0" y="304" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Получение рекомендаций</text>
+<rect x="420" y="380" width="340" height="70" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="590.0" y="404" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Подбор специалиста</text>
+<rect x="420" y="480" width="340" height="70" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="590.0" y="504" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Участие в форуме</text>
+<rect x="420" y="580" width="340" height="70" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="590.0" y="604" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Чтение блога</text>
+<line x1="240" y1="160" x2="420" y2="115" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="240" y1="160" x2="420" y2="215" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="240" y1="160" x2="420" y2="315" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="240" y1="160" x2="420" y2="415" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="240" y1="160" x2="420" y2="515" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="240" y1="160" x2="420" y2="615" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="760" y1="315" x2="1260" y2="260" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="760" y1="415" x2="1260" y2="460" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="240" y1="360" x2="420" y2="415" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="240" y1="560" x2="420" y2="515" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="240" y1="560" x2="420" y2="615" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="60" y="40" font-family="Segoe UI, Arial" font-size="20" fill="#0f172a">Диаграмма 2. Варианты использования</text>
+</svg>

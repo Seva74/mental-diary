@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1450" height="900" viewBox="0 0 1450 900">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#334155" />
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1450" height="900" fill="#f8fafc" />
+
+<text x="60" y="40" font-family="Segoe UI, Arial" font-size="20" fill="#0f172a">Диаграмма 5. Классы проектирования</text>
+<rect x="80" y="100" width="240" height="140" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="200.0" y="124" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Entry</text>
+<text x="200.0" y="142" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">id,date,moodScore</text>
+<rect x="420" y="100" width="240" height="140" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="540.0" y="124" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">Analysis</text>
+<text x="540.0" y="142" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">summary,riskLevel</text>
+<rect x="760" y="100" width="280" height="140" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="900.0" y="124" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">RecommendationService</text>
+<text x="900.0" y="142" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">generate(), fallback()</text>
+<rect x="1120" y="100" width="240" height="140" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="1240.0" y="124" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">SpecialistGateway</text>
+<text x="1240.0" y="142" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">findSpecialists()</text>
+<rect x="80" y="340" width="260" height="120" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="210.0" y="364" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">EntryRepository</text>
+<text x="210.0" y="382" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">save(), listByUser()</text>
+<rect x="420" y="340" width="240" height="120" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="540.0" y="364" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">IAnalysisService</text>
+<text x="540.0" y="382" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">&lt;&lt;interface&gt;&gt;</text>
+<rect x="760" y="340" width="280" height="120" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="900.0" y="364" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">IRecommendationProvider</text>
+<text x="900.0" y="382" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">&lt;&lt;interface&gt;&gt;</text>
+<rect x="1120" y="340" width="240" height="120" rx="10" ry="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="1240.0" y="364" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">ISpecialistGateway</text>
+<text x="1240.0" y="382" text-anchor="middle" font-family="Segoe UI, Arial" font-size="14" fill="#0f172a">&lt;&lt;interface&gt;&gt;</text>
+<line x1="320" y1="170" x2="420" y2="170" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="370.0" y="164.0" text-anchor="middle" font-family="Segoe UI, Arial" font-size="12" fill="#1e293b">uses</text>
+<line x1="660" y1="170" x2="760" y2="170" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="710.0" y="164.0" text-anchor="middle" font-family="Segoe UI, Arial" font-size="12" fill="#1e293b">depends</text>
+<line x1="1040" y1="170" x2="1120" y2="170" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="220" y1="240" x2="220" y2="340" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="560" y1="240" x2="560" y2="340" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="900" y1="240" x2="900" y2="340" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="900.0" y="284.0" text-anchor="middle" font-family="Segoe UI, Arial" font-size="12" fill="#1e293b">implements</text>
+<line x1="1240" y1="240" x2="1240" y2="340" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="1240.0" y="284.0" text-anchor="middle" font-family="Segoe UI, Arial" font-size="12" fill="#1e293b">implements</text>
+</svg>
