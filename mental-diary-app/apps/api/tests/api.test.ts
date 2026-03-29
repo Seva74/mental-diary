@@ -2,11 +2,12 @@ import request from 'supertest';
 import { createApp } from '../src/app';
 import { MemoryEntryStore } from '../src/infrastructure/entryStore';
 import { createAiAdapter } from '../src/infrastructure/aiAdapter';
+import { createSpecialistGateway } from '../src/infrastructure/specialistGateway';
 import { DiaryService } from '../src/services/diaryService';
 
 describe('API scenarios', () => {
   it('returns dashboard data and accepts a new entry', async () => {
-    const service = new DiaryService(new MemoryEntryStore(), createAiAdapter());
+    const service = new DiaryService(new MemoryEntryStore(), createAiAdapter(), createSpecialistGateway());
     await service.bootstrap();
     const app = createApp(service);
 
@@ -32,7 +33,7 @@ describe('API scenarios', () => {
   });
 
   it('rejects invalid payloads', async () => {
-    const service = new DiaryService(new MemoryEntryStore(), createAiAdapter());
+    const service = new DiaryService(new MemoryEntryStore(), createAiAdapter(), createSpecialistGateway());
     await service.bootstrap();
     const app = createApp(service);
 
@@ -48,7 +49,7 @@ describe('API scenarios', () => {
   });
 
   it('serves forum and blog prototype modules', async () => {
-    const service = new DiaryService(new MemoryEntryStore(), createAiAdapter());
+    const service = new DiaryService(new MemoryEntryStore(), createAiAdapter(), createSpecialistGateway());
     await service.bootstrap();
     const app = createApp(service);
 

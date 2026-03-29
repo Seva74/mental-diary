@@ -70,6 +70,7 @@ export interface Article {
 export interface DashboardData {
   storageMode: 'memory' | 'postgres';
   aiProvider: string;
+  specialistProvider: string;
   entries: Entry[];
   analysis: Analysis;
   recommendations: Recommendation[];

@@ -2,6 +2,8 @@ import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { createEntry, createForumPost, getBlogArticles, getDashboard } from './api';
 import { DashboardData, EntryFormState, ForumFormState } from './types';
 
+const OFFLINE_DRAFTS_KEY = 'mental-diary-offline-entries-v1';
+
 const initialEntryForm: EntryFormState = {
   moodScore: 6,
   energy: 6,
@@ -24,45 +26,136 @@ const formatDate = (value: string) => new Intl.DateTimeFormat('ru-RU', {
   minute: '2-digit'
 }).format(new Date(value));
 
+const todayLabel = new Intl.DateTimeFormat('ru-RU', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric'
+}).format(new Date());
+
 const riskLabelMap: Record<DashboardData['analysis']['riskLevel'], string> = {
-  low: 'Low pressure',
-  moderate: 'Watch trend',
-  high: 'High attention',
-  critical: 'Critical profile'
+  low: 'Стабильный профиль',
+  moderate: 'Нужна динамика',
+  high: 'Повышенное внимание',
+  critical: 'Критический профиль'
+};
+
+const riskClassMap: Record<DashboardData['analysis']['riskLevel'], string> = {
+  low: 'pill pill-low',
+  moderate: 'pill pill-moderate',
+  high: 'pill pill-high',
+  critical: 'pill pill-critical'
 };
 
 const severityClassMap: Record<'info' | 'warning' | 'critical', string> = {
-  info: 'tag tag-info',
-  warning: 'tag tag-warning',
-  critical: 'tag tag-critical'
+  info: 'pill pill-low',
+  warning: 'pill pill-high',
+  critical: 'pill pill-critical'
 };
 
-type ViewMode = 'overview' | 'forum' | 'blog';
+type ViewMode = 'home' | 'diary' | 'analysis' | 'specialists' | 'forum' | 'blog';
+type ThemeMode = 'light' | 'dark';
+
+const readOfflineDrafts = (): EntryFormState[] => {
+  try {
+    const raw = localStorage.getItem(OFFLINE_DRAFTS_KEY);
+
+    if (!raw) {
+      return [];
+    }
+
+    const parsed = JSON.parse(raw) as EntryFormState[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const writeOfflineDrafts = (drafts: EntryFormState[]) => {
+  localStorage.setItem(OFFLINE_DRAFTS_KEY, JSON.stringify(drafts));
+};
+
+const isLikelyNetworkError = (error: unknown): boolean => {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const text = error.message.toLowerCase();
+  return text.includes('fetch') || text.includes('network') || text.includes('failed to load');
+};
 
 const App = () => {
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [entryForm, setEntryForm] = useState<EntryFormState>(initialEntryForm);
   const [forumForm, setForumForm] = useState<ForumFormState>(initialForumForm);
-  const [viewMode, setViewMode] = useState<ViewMode>('overview');
+  const [viewMode, setViewMode] = useState<ViewMode>('home');
   const [loading, setLoading] = useState(true);
   const [savingEntry, setSavingEntry] = useState(false);
   const [savingForum, setSavingForum] = useState(false);
+  const [syncingOffline, setSyncingOffline] = useState(false);
+  const [pendingOfflineEntries, setPendingOfflineEntries] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [theme, setTheme] = useState<ThemeMode>('light');
+
+  const loadDashboard = async () => {
+    setError(null);
+    setLoading(true);
+
+    try {
+      setDashboard(await getDashboard());
+      setPendingOfflineEntries(readOfflineDrafts().length);
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Не удалось загрузить данные.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const syncOfflineEntries = async () => {
+    const drafts = readOfflineDrafts();
+
+    if (drafts.length === 0) {
+      setPendingOfflineEntries(0);
+      setNotice('Локальных записей для синхронизации нет.');
+      return;
+    }
+
+    setSyncingOffline(true);
+
+    try {
+      let lastDashboard: DashboardData | null = null;
+
+      for (const draft of drafts) {
+        const response = await createEntry(draft);
+        lastDashboard = response.dashboard;
+      }
+
+      if (lastDashboard) {
+        setDashboard(lastDashboard);
+      }
+
+      writeOfflineDrafts([]);
+      setPendingOfflineEntries(0);
+      setNotice(`Синхронизировано локальных записей: ${drafts.length}.`);
+      setError(null);
+    } catch {
+      setError('Не удалось синхронизировать локальные записи. Проверьте соединение и повторите.');
+    } finally {
+      setSyncingOffline(false);
+    }
+  };
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        setError(null);
-        setLoading(true);
-        setDashboard(await getDashboard());
-      } catch (loadError) {
-        setError(loadError instanceof Error ? loadError.message : 'Failed to load dashboard');
-      } finally {
-        setLoading(false);
-      }
-    };
+    setPendingOfflineEntries(readOfflineDrafts().length);
+  }, []);
 
-    void load();
+  useEffect(() => {
+    document.body.setAttribute('data-theme', theme);
+  }, [theme]);
+
+  useEffect(() => {
+    void loadDashboard();
   }, []);
 
   useEffect(() => {
@@ -71,15 +164,11 @@ const App = () => {
     }
 
     const refreshBlog = async () => {
-      if (!dashboard) {
-        return;
-      }
-
       try {
         const articles = await getBlogArticles();
-        setDashboard({ ...dashboard, articles });
+        setDashboard((current) => (current ? { ...current, articles } : current));
       } catch {
-        // Keep currently loaded content when blog refresh fails.
+        // Keep existing blog data when refresh fails.
       }
     };
 
@@ -92,15 +181,10 @@ const App = () => {
     }
 
     return [
-      { label: 'Записей', value: dashboard.analysis.entryCount.toString() },
-      { label: 'Среднее настроение', value: `${dashboard.analysis.averageMood.toFixed(1)}/10` },
-      { label: 'Средний стресс', value: `${dashboard.analysis.averageStress.toFixed(1)}/10` },
-      {
-        label: 'Тренд',
-        value: dashboard.analysis.trendScore >= 0
-          ? `+${dashboard.analysis.trendScore.toFixed(1)}`
-          : dashboard.analysis.trendScore.toFixed(1)
-      }
+      { label: 'Настроение', value: `${dashboard.analysis.averageMood.toFixed(1)}/10` },
+      { label: 'Стресс', value: `${dashboard.analysis.averageStress.toFixed(1)}/10` },
+      { label: 'Сон', value: `${dashboard.analysis.averageSleepHours.toFixed(1)} ч` },
+      { label: 'Записи', value: dashboard.analysis.entryCount.toString() }
     ];
   }, [dashboard]);
 
@@ -117,12 +201,24 @@ const App = () => {
 
     try {
       setError(null);
+      setNotice(null);
       setSavingEntry(true);
       const response = await createEntry(entryForm);
       setDashboard(response.dashboard);
       setEntryForm((current) => ({ ...current, notes: '', tags: 'focus, reflection' }));
+      setViewMode('analysis');
+      setNotice('Запись успешно сохранена.');
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'Failed to save entry');
+      if (isLikelyNetworkError(submitError)) {
+        const drafts = readOfflineDrafts();
+        drafts.push(entryForm);
+        writeOfflineDrafts(drafts);
+        setPendingOfflineEntries(drafts.length);
+        setEntryForm((current) => ({ ...current, notes: '', tags: 'focus, reflection' }));
+        setNotice('Сеть недоступна: запись сохранена локально и будет отправлена позже.');
+      } else {
+        setError(submitError instanceof Error ? submitError.message : 'Не удалось сохранить запись.');
+      }
     } finally {
       setSavingEntry(false);
     }
@@ -133,273 +229,234 @@ const App = () => {
 
     try {
       setError(null);
+      setNotice(null);
       setSavingForum(true);
       const response = await createForumPost(forumForm);
-      if (dashboard) {
-        setDashboard({ ...dashboard, forumPosts: response.posts });
-      }
+      setDashboard((current) => (current ? { ...current, forumPosts: response.posts } : current));
       setForumForm((current) => ({ ...current, text: '' }));
+      setNotice('Сообщение опубликовано.');
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'Failed to publish forum post');
+      setError(submitError instanceof Error ? submitError.message : 'Не удалось опубликовать сообщение.');
     } finally {
       setSavingForum(false);
     }
   };
 
   return (
-    <main className="app-shell">
-      <div className="background-orb background-orb-left" />
-      <div className="background-orb background-orb-right" />
+    <main className="screen">
+      <aside className="sidebar">
+        <h1 className="logo">Mental<span>.</span></h1>
+        <nav className="menu">
+          <button type="button" className={viewMode === 'home' ? 'menu-item active' : 'menu-item'} onClick={() => setViewMode('home')}>Главная</button>
+          <button type="button" className={viewMode === 'diary' ? 'menu-item active' : 'menu-item'} onClick={() => setViewMode('diary')}>Дневник</button>
+          <button type="button" className={viewMode === 'analysis' ? 'menu-item active' : 'menu-item'} onClick={() => setViewMode('analysis')}>Аналитика</button>
+          <button type="button" className={viewMode === 'specialists' ? 'menu-item active' : 'menu-item'} onClick={() => setViewMode('specialists')}>Специалисты</button>
+          <button type="button" className={viewMode === 'forum' ? 'menu-item active' : 'menu-item'} onClick={() => setViewMode('forum')}>Форум</button>
+          <button type="button" className={viewMode === 'blog' ? 'menu-item active' : 'menu-item'} onClick={() => setViewMode('blog')}>Блог</button>
+        </nav>
+      </aside>
 
-      <section className="hero-card">
-        <div className="hero-copy">
-          <span className="eyebrow">Mental Diary prototype</span>
-          <h1>From daily check-ins to practical support.</h1>
-          <p>
-            Исполняемый прототип фазы 2: дневник, аналитика, рекомендации, подбор специалистов,
-            плюс прототипные модули форума и блога.
-          </p>
-          <div className="status-row">
-            <span className="tag tag-info">API {dashboard?.storageMode || '...'}</span>
-            <span className="tag tag-info">AI {dashboard?.aiProvider || '...'}</span>
-            <span className={`tag ${dashboard?.analysis.riskLevel === 'critical' ? 'tag-critical' : 'tag-warning'}`}>
-              {dashboard ? riskLabelMap[dashboard.analysis.riskLevel] : 'Loading'}
-            </span>
+      <section className="main">
+        <header className="topbar">
+          <div>
+            <strong className="top-title">{todayLabel}</strong>
+            <div className="top-subtitle">ВИ1-ВИ4 реализованы как ядро, ВИ5-ВИ6 как прототипы</div>
           </div>
-        </div>
+          <div className="top-actions">
+            <span className="pill pill-neutral">API {dashboard?.storageMode || '...'}</span>
+            <span className="pill pill-neutral">AI {dashboard?.aiProvider || '...'}</span>
+            <span className="pill pill-neutral">Spec {dashboard?.specialistProvider || '...'}</span>
+            {dashboard && <span className={riskClassMap[dashboard.analysis.riskLevel]}>{riskLabelMap[dashboard.analysis.riskLevel]}</span>}
+            <button type="button" className="ghost-btn" onClick={() => setTheme((current) => (current === 'light' ? 'dark' : 'light'))}>
+              Тема: {theme === 'light' ? 'Светлая' : 'Темная'}
+            </button>
+            <button type="button" className="ghost-btn" onClick={() => void loadDashboard()}>Обновить</button>
+          </div>
+        </header>
 
-        <div className="hero-panel">
-          {loading ? (
-            <div className="loader-card">Loading dashboard...</div>
-          ) : dashboard ? (
+        <div className="content">
+          {error && <div className="error-banner">{error}</div>}
+          {notice && <div className="notice-banner">{notice}</div>}
+          {loading && <div className="loader">Загрузка данных...</div>}
+
+          {!loading && dashboard && viewMode === 'home' && (
             <>
-              <div className="panel-title">Current pulse</div>
-              <div className="pulse-score">{dashboard.analysis.averageMood.toFixed(1)}</div>
-              <p className="pulse-description">{dashboard.analysis.summary}</p>
+              <section className="stats-grid">
+                {stats.map((stat) => (
+                  <article className="card" key={stat.label}>
+                    <div className="label">{stat.label}</div>
+                    <div className="value">{stat.value}</div>
+                  </article>
+                ))}
+              </section>
+              <section className="split-grid">
+                <article className="card">
+                  <h2>Общий срез состояния</h2>
+                  <p>{dashboard.analysis.summary}</p>
+                  <div className="buttons-row">
+                    <button type="button" className="primary-btn" onClick={() => setViewMode('diary')}>Заполнить запись дня</button>
+                    <button type="button" className="ghost-btn" onClick={() => setViewMode('analysis')}>Открыть аналитику</button>
+                  </div>
+                </article>
+                <article className="card">
+                  <h2>Последние записи</h2>
+                  <div className="stack-list">
+                    {dashboard.entries.slice(0, 3).map((entry) => (
+                      <div className="list-item" key={entry.id}>
+                        <div>
+                          <strong>{formatDate(entry.createdAt)}</strong>
+                          <p>{entry.notes}</p>
+                        </div>
+                        <span className="pill pill-neutral">Mood {entry.moodScore}</span>
+                      </div>
+                    ))}
+                  </div>
+                </article>
+              </section>
             </>
-          ) : (
-            <div className="loader-card">No dashboard data</div>
+          )}
+
+          {!loading && dashboard && viewMode === 'diary' && (
+            <section className="single-column">
+              <article className="card">
+                <h2>ВИ1: Ввод ежедневной записи</h2>
+                {pendingOfflineEntries > 0 && (
+                  <div className="offline-row">
+                    <span>Локальных записей: {pendingOfflineEntries}</span>
+                    <button type="button" className="ghost-btn" onClick={() => void syncOfflineEntries()} disabled={syncingOffline || savingEntry}>
+                      {syncingOffline ? 'Синхронизация...' : 'Синхронизировать'}
+                    </button>
+                  </div>
+                )}
+                <form className="form" onSubmit={onEntrySubmit}>
+                  <label>
+                    <span>События и эмоции</span>
+                    <textarea
+                      value={entryForm.notes}
+                      onChange={(event) => updateEntryField('notes', event.target.value)}
+                      placeholder="Что произошло и как это повлияло на состояние?"
+                      rows={5}
+                      required
+                    />
+                  </label>
+                  <div className="sliders">
+                    <label><span>Настроение {entryForm.moodScore}/10</span><input type="range" min="1" max="10" value={entryForm.moodScore} onChange={(event) => updateEntryField('moodScore', Number(event.target.value))} /></label>
+                    <label><span>Энергия {entryForm.energy}/10</span><input type="range" min="1" max="10" value={entryForm.energy} onChange={(event) => updateEntryField('energy', Number(event.target.value))} /></label>
+                    <label><span>Стресс {entryForm.stress}/10</span><input type="range" min="1" max="10" value={entryForm.stress} onChange={(event) => updateEntryField('stress', Number(event.target.value))} /></label>
+                    <label><span>Сон {entryForm.sleepHours} ч</span><input type="range" min="0" max="12" step="0.5" value={entryForm.sleepHours} onChange={(event) => updateEntryField('sleepHours', Number(event.target.value))} /></label>
+                  </div>
+                  <label>
+                    <span>Теги</span>
+                    <input type="text" value={entryForm.tags} onChange={(event) => updateEntryField('tags', event.target.value)} placeholder="focus, stress, walk" />
+                  </label>
+                  <button type="submit" className="primary-btn" disabled={savingEntry}>{savingEntry ? 'Сохраняем...' : 'Сохранить запись'}</button>
+                </form>
+              </article>
+            </section>
+          )}
+
+          {!loading && dashboard && viewMode === 'analysis' && (
+            <section className="split-grid">
+              <article className="card">
+                <h2>ВИ2: Аналитика тенденций</h2>
+                <p>{dashboard.analysis.summary}</p>
+                <div className="metric-grid">
+                  <div className="metric"><span>Тренд</span><strong>{dashboard.analysis.trendScore.toFixed(1)}</strong></div>
+                  <div className="metric"><span>Энергия</span><strong>{dashboard.analysis.averageEnergy.toFixed(1)}</strong></div>
+                  <div className="metric"><span>Сон</span><strong>{dashboard.analysis.averageSleepHours.toFixed(1)} ч</strong></div>
+                  <div className="metric"><span>Стресс</span><strong>{dashboard.analysis.averageStress.toFixed(1)}</strong></div>
+                </div>
+              </article>
+              <article className="card">
+                <h2>ВИ3: Рекомендации</h2>
+                <div className="stack-list">
+                  {dashboard.recommendations.map((item) => (
+                    <div className="list-item column" key={item.id}>
+                      <div className="item-head">
+                        <strong>{item.title}</strong>
+                        <span className={severityClassMap[item.severity]}>{item.source}</span>
+                      </div>
+                      <p>{item.detail}</p>
+                      <span className="action">{item.action}</span>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            </section>
+          )}
+
+          {!loading && dashboard && viewMode === 'specialists' && (
+            <section className="single-column">
+              <article className="card">
+                <h2>ВИ4: Подбор специалистов</h2>
+                <div className="stack-list">
+                  {dashboard.specialists.map((specialist) => (
+                    <div className="list-item column" key={specialist.id}>
+                      <div className="item-head">
+                        <strong>{specialist.name}</strong>
+                        <span className="pill pill-high">{specialist.specialization}</span>
+                      </div>
+                      <p>{specialist.reason}</p>
+                      <div className="meta">{specialist.availability} · {specialist.contact}</div>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            </section>
+          )}
+
+          {!loading && dashboard && viewMode === 'forum' && (
+            <section className="split-grid">
+              <article className="card">
+                <h2>ВИ5: Форум</h2>
+                <form className="form" onSubmit={onForumSubmit}>
+                  <label><span>Имя</span><input type="text" maxLength={40} value={forumForm.authorName} onChange={(event) => updateForumField('authorName', event.target.value)} required /></label>
+                  <label>
+                    <span>Тип сообщения</span>
+                    <select value={forumForm.moodTag} onChange={(event) => updateForumField('moodTag', event.target.value as ForumFormState['moodTag'])}>
+                      <option value="support">support</option>
+                      <option value="question">question</option>
+                      <option value="experience">experience</option>
+                    </select>
+                  </label>
+                  <label><span>Текст</span><textarea rows={5} maxLength={500} value={forumForm.text} onChange={(event) => updateForumField('text', event.target.value)} required /></label>
+                  <button type="submit" className="primary-btn" disabled={savingForum}>{savingForum ? 'Публикуем...' : 'Опубликовать'}</button>
+                </form>
+              </article>
+              <article className="card">
+                <h2>Лента обсуждений</h2>
+                <div className="stack-list">
+                  {dashboard.forumPosts.map((post) => (
+                    <div className="list-item column" key={post.id}>
+                      <div className="item-head"><strong>{post.authorName}</strong><span className="pill pill-neutral">{post.moodTag}</span></div>
+                      <p>{post.text}</p>
+                      <div className="meta">{formatDate(post.createdAt)}</div>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            </section>
+          )}
+
+          {!loading && dashboard && viewMode === 'blog' && (
+            <section className="single-column">
+              <article className="card">
+                <h2>ВИ6: Блог</h2>
+                <div className="stack-list">
+                  {dashboard.articles.map((article) => (
+                    <div className="list-item column" key={article.id}>
+                      <div className="item-head"><strong>{article.title}</strong><span className="pill pill-neutral">{article.readTimeMinutes} мин</span></div>
+                      <p>{article.summary}</p>
+                      <p>{article.content}</p>
+                      <div className="meta">{article.tags.join(' · ')}</div>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            </section>
           )}
         </div>
       </section>
-
-      <section className="tab-row" aria-label="Main sections">
-        <button type="button" className={`tab-button ${viewMode === 'overview' ? 'tab-button-active' : ''}`} onClick={() => setViewMode('overview')}>Обзор</button>
-        <button type="button" className={`tab-button ${viewMode === 'forum' ? 'tab-button-active' : ''}`} onClick={() => setViewMode('forum')}>Форум</button>
-        <button type="button" className={`tab-button ${viewMode === 'blog' ? 'tab-button-active' : ''}`} onClick={() => setViewMode('blog')}>Блог</button>
-      </section>
-
-      {error && <div className="error-banner">{error}</div>}
-
-      {viewMode === 'overview' && (
-        <>
-          <section className="stats-grid">
-            {stats.map((stat) => (
-              <article className="stat-card" key={stat.label}>
-                <span className="stat-label">{stat.label}</span>
-                <strong>{stat.value}</strong>
-              </article>
-            ))}
-          </section>
-
-          <section className="content-grid">
-            <article className="panel panel-form">
-              <div className="panel-heading">
-                <div>
-                  <span className="eyebrow">ВИ1</span>
-                  <h2>Ввод ежедневной записи</h2>
-                </div>
-                <span className="panel-note">Минимум кликов</span>
-              </div>
-
-              <form className="entry-form" onSubmit={onEntrySubmit}>
-                <label>
-                  <span>Notes</span>
-                  <textarea
-                    value={entryForm.notes}
-                    onChange={(event) => updateEntryField('notes', event.target.value)}
-                    placeholder="Что произошло сегодня? Какие эмоции заметили?"
-                    rows={5}
-                    required
-                  />
-                </label>
-
-                <div className="slider-grid">
-                  <label>
-                    <span>Mood {entryForm.moodScore}/10</span>
-                    <input type="range" min="1" max="10" value={entryForm.moodScore} onChange={(event) => updateEntryField('moodScore', Number(event.target.value))} />
-                  </label>
-                  <label>
-                    <span>Energy {entryForm.energy}/10</span>
-                    <input type="range" min="1" max="10" value={entryForm.energy} onChange={(event) => updateEntryField('energy', Number(event.target.value))} />
-                  </label>
-                  <label>
-                    <span>Stress {entryForm.stress}/10</span>
-                    <input type="range" min="1" max="10" value={entryForm.stress} onChange={(event) => updateEntryField('stress', Number(event.target.value))} />
-                  </label>
-                  <label>
-                    <span>Sleep {entryForm.sleepHours}h</span>
-                    <input type="range" min="0" max="12" step="0.5" value={entryForm.sleepHours} onChange={(event) => updateEntryField('sleepHours', Number(event.target.value))} />
-                  </label>
-                </div>
-
-                <label>
-                  <span>Tags</span>
-                  <input type="text" value={entryForm.tags} onChange={(event) => updateEntryField('tags', event.target.value)} placeholder="comma separated" />
-                </label>
-
-                <button className="primary-button" type="submit" disabled={savingEntry}>
-                  {savingEntry ? 'Saving...' : 'Save entry'}
-                </button>
-              </form>
-            </article>
-
-            <article className="panel panel-analysis">
-              <div className="panel-heading">
-                <div>
-                  <span className="eyebrow">ВИ2/ВИ3/ВИ4</span>
-                  <h2>Аналитика, советы и специалисты</h2>
-                </div>
-              </div>
-
-              {dashboard ? (
-                <>
-                  <p className="analysis-summary">{dashboard.analysis.summary}</p>
-                  <div className="mini-metrics">
-                    <div><span>Energy</span><strong>{dashboard.analysis.averageEnergy.toFixed(1)}</strong></div>
-                    <div><span>Sleep</span><strong>{dashboard.analysis.averageSleepHours.toFixed(1)}h</strong></div>
-                    <div><span>Risk</span><strong>{dashboard.analysis.riskLevel}</strong></div>
-                  </div>
-
-                  <div className="recommendation-list">
-                    {dashboard.recommendations.map((item) => (
-                      <article className="recommendation-card" key={item.id}>
-                        <div className="recommendation-head">
-                          <span className={severityClassMap[item.severity]}>{item.source}</span>
-                          <h3>{item.title}</h3>
-                        </div>
-                        <p>{item.detail}</p>
-                        <strong>{item.action}</strong>
-                      </article>
-                    ))}
-                  </div>
-                </>
-              ) : <p className="muted-block">Waiting for data...</p>}
-            </article>
-          </section>
-
-          <section className="content-grid bottom-grid">
-            <article className="panel">
-              <div className="panel-heading">
-                <div><span className="eyebrow">Timeline</span><h2>Recent entries</h2></div>
-              </div>
-              <div className="entry-list">
-                {dashboard?.entries.map((entry) => (
-                  <article className="entry-card" key={entry.id}>
-                    <div className="entry-card-head">
-                      <strong>{formatDate(entry.createdAt)}</strong>
-                      <span className="tag tag-info">Mood {entry.moodScore}</span>
-                    </div>
-                    <p>{entry.notes}</p>
-                    <div className="chips-row">
-                      {entry.tags.map((tag) => <span className="chip" key={`${entry.id}-${tag}`}>{tag}</span>)}
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </article>
-
-            <article className="panel">
-              <div className="panel-heading">
-                <div><span className="eyebrow">Escalation</span><h2>Подбор специалистов</h2></div>
-              </div>
-              <div className="specialist-list">
-                {dashboard?.specialists.map((specialist) => (
-                  <article className="specialist-card" key={specialist.id}>
-                    <div className="specialist-top">
-                      <strong>{specialist.name}</strong>
-                      <span className="tag tag-warning">{specialist.specialization}</span>
-                    </div>
-                    <p>{specialist.reason}</p>
-                    <div className="specialist-meta">
-                      <span>{specialist.availability}</span>
-                      <span>{specialist.contact}</span>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </article>
-          </section>
-        </>
-      )}
-
-      {viewMode === 'forum' && (
-        <section className="content-grid forum-grid">
-          <article className="panel panel-form">
-            <div className="panel-heading">
-              <div><span className="eyebrow">ВИ5</span><h2>Форум сообщества</h2></div>
-            </div>
-            <form className="entry-form" onSubmit={onForumSubmit}>
-              <label>
-                <span>Имя</span>
-                <input type="text" maxLength={40} value={forumForm.authorName} onChange={(event) => updateForumField('authorName', event.target.value)} required />
-              </label>
-              <label>
-                <span>Тип сообщения</span>
-                <select value={forumForm.moodTag} onChange={(event) => updateForumField('moodTag', event.target.value as ForumFormState['moodTag'])}>
-                  <option value="support">support</option>
-                  <option value="question">question</option>
-                  <option value="experience">experience</option>
-                </select>
-              </label>
-              <label>
-                <span>Текст</span>
-                <textarea rows={5} maxLength={500} value={forumForm.text} onChange={(event) => updateForumField('text', event.target.value)} required />
-              </label>
-              <button className="primary-button" type="submit" disabled={savingForum}>{savingForum ? 'Publishing...' : 'Опубликовать'}</button>
-            </form>
-          </article>
-
-          <article className="panel">
-            <div className="panel-heading"><div><span className="eyebrow">Live feed</span><h2>Последние темы</h2></div></div>
-            <div className="entry-list">
-              {dashboard?.forumPosts.map((post) => (
-                <article className="entry-card" key={post.id}>
-                  <div className="entry-card-head">
-                    <strong>{post.authorName}</strong>
-                    <span className="tag tag-info">{post.moodTag}</span>
-                  </div>
-                  <p>{post.text}</p>
-                  <div className="specialist-meta"><span>{formatDate(post.createdAt)}</span></div>
-                </article>
-              ))}
-            </div>
-          </article>
-        </section>
-      )}
-
-      {viewMode === 'blog' && (
-        <section className="content-grid forum-grid">
-          <article className="panel">
-            <div className="panel-heading"><div><span className="eyebrow">ВИ6</span><h2>Блог о ментальном здоровье</h2></div></div>
-            <div className="recommendation-list">
-              {dashboard?.articles.map((article) => (
-                <article className="recommendation-card" key={article.id}>
-                  <div className="recommendation-head">
-                    <span className="tag tag-warning">{article.readTimeMinutes} min</span>
-                    <h3>{article.title}</h3>
-                  </div>
-                  <p>{article.summary}</p>
-                  <p>{article.content}</p>
-                  <div className="chips-row">
-                    {article.tags.map((tag) => <span className="chip" key={`${article.id}-${tag}`}>{tag}</span>)}
-                  </div>
-                </article>
-              ))}
-            </div>
-          </article>
-        </section>
-      )}
     </main>
   );
 };

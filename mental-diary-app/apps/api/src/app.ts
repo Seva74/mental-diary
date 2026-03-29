@@ -3,11 +3,15 @@ import express, { NextFunction, Request, Response } from 'express';
 import { DiaryService } from './services/diaryService';
 import { EntryInput, ForumPostInput } from './types';
 
+class RequestValidationError extends Error {
+  readonly status = 400;
+}
+
 const requiredNumber = (value: unknown, min: number, max: number, fieldName: string) => {
   const numeric = typeof value === 'string' ? Number(value) : value;
 
   if (typeof numeric !== 'number' || Number.isNaN(numeric) || numeric < min || numeric > max) {
-    throw new Error(`${fieldName} must be between ${min} and ${max}`);
+    throw new RequestValidationError(`${fieldName} must be between ${min} and ${max}`);
   }
 
   return numeric;
@@ -15,7 +19,7 @@ const requiredNumber = (value: unknown, min: number, max: number, fieldName: str
 
 const parseEntryInput = (body: unknown): EntryInput => {
   if (typeof body !== 'object' || body === null) {
-    throw new Error('Request body must be an object');
+    throw new RequestValidationError('Request body must be an object');
   }
 
   const candidate = body as Record<string, unknown>;
@@ -25,7 +29,7 @@ const parseEntryInput = (body: unknown): EntryInput => {
     : [];
 
   if (!notes) {
-    throw new Error('notes is required');
+    throw new RequestValidationError('notes is required');
   }
 
   return {
@@ -40,7 +44,7 @@ const parseEntryInput = (body: unknown): EntryInput => {
 
 const parseForumPostInput = (body: unknown): ForumPostInput => {
   if (typeof body !== 'object' || body === null) {
-    throw new Error('Request body must be an object');
+    throw new RequestValidationError('Request body must be an object');
   }
 
   const candidate = body as Record<string, unknown>;
@@ -49,15 +53,15 @@ const parseForumPostInput = (body: unknown): ForumPostInput => {
   const moodTag = candidate.moodTag;
 
   if (!authorName || authorName.length > 40) {
-    throw new Error('authorName is required and must be <= 40 chars');
+    throw new RequestValidationError('authorName is required and must be <= 40 chars');
   }
 
   if (!text || text.length > 500) {
-    throw new Error('text is required and must be <= 500 chars');
+    throw new RequestValidationError('text is required and must be <= 500 chars');
   }
 
   if (moodTag !== 'support' && moodTag !== 'question' && moodTag !== 'experience') {
-    throw new Error('moodTag must be support, question, or experience');
+    throw new RequestValidationError('moodTag must be support, question, or experience');
   }
 
   return {
@@ -86,6 +90,7 @@ export const createApp = (service: DiaryService) => {
       status: 'ok',
       storageMode: dashboard.storageMode,
       aiProvider: dashboard.aiProvider,
+      specialistProvider: dashboard.specialistProvider,
       entries: dashboard.entries.length
     });
   }));
@@ -135,8 +140,10 @@ export const createApp = (service: DiaryService) => {
     response.json(await service.getArticles());
   }));
 
-  app.use((error: Error, _request: Request, response: Response, _next: NextFunction) => {
-    response.status(400).json({
+  app.use((error: Error & { status?: number }, _request: Request, response: Response, _next: NextFunction) => {
+    const status = Number.isInteger(error.status) ? Number(error.status) : 500;
+
+    response.status(status).json({
       error: error.message
     });
   });
