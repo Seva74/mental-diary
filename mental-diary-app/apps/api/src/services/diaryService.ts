@@ -1,7 +1,8 @@
 import { computeAnalysis } from '../domain/analysis';
-import { buildRecommendations, getSpecialistsForAnalysis } from '../domain/recommendations';
+import { buildRecommendations } from '../domain/recommendations';
 import { createAiAdapter, AiAdapter } from '../infrastructure/aiAdapter';
 import { createEntryStore, EntryStore } from '../infrastructure/entryStore';
+import { createSpecialistGateway, SpecialistGateway } from '../infrastructure/specialistGateway';
 import { demoArticles, demoEntries, demoForumPosts } from '../seed';
 import { Article, DashboardData, Entry, EntryInput, ForumPost, ForumPostInput } from '../types';
 
@@ -11,12 +12,13 @@ export class DiaryService {
 
   constructor(
     private readonly store: EntryStore,
-    private readonly aiAdapter: AiAdapter
+    private readonly aiAdapter: AiAdapter,
+    private readonly specialistGateway: SpecialistGateway
   ) {}
 
   static async create(databaseUrl?: string): Promise<DiaryService> {
     const store = await createEntryStore(databaseUrl);
-    return new DiaryService(store, createAiAdapter());
+    return new DiaryService(store, createAiAdapter(), createSpecialistGateway());
   }
 
   async bootstrap(): Promise<void> {
@@ -57,14 +59,16 @@ export class DiaryService {
     const analysis = computeAnalysis(entries);
     const aiMessage = await this.aiAdapter.createAdvice(analysis, entries);
     const recommendations = buildRecommendations(analysis, entries, aiMessage);
+    const specialists = await this.specialistGateway.findSpecialists(analysis);
 
     return {
       storageMode: this.store.mode,
       aiProvider: this.aiAdapter.provider,
+      specialistProvider: this.specialistGateway.provider,
       entries,
       analysis,
       recommendations,
-      specialists: getSpecialistsForAnalysis(analysis),
+      specialists,
       forumPosts: await this.getForumPosts(),
       articles: await this.getArticles()
     };

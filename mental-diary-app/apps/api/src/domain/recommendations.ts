@@ -1,5 +1,4 @@
-import { Analysis, Entry, Recommendation, Specialist } from '../types';
-import { specialists as seedSpecialists } from '../seed';
+import { Analysis, Entry, Recommendation } from '../types';
 
 const createId = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
 
@@ -17,18 +16,6 @@ const fallbackAdvice = (analysis: Analysis) => {
   }
 
   return 'Состояние выглядит устойчивым. Продолжайте текущий ритм и отмечайте изменения, если они появятся.';
-};
-
-const chooseSpecialists = (analysis: Analysis): Specialist[] => {
-  if (analysis.riskLevel === 'low') {
-    return seedSpecialists.slice(2, 3);
-  }
-
-  if (analysis.riskLevel === 'moderate') {
-    return seedSpecialists.slice(1, 3);
-  }
-
-  return seedSpecialists;
 };
 
 export const buildRecommendations = (analysis: Analysis, entries: Entry[], aiMessage: string | null): Recommendation[] => {
@@ -95,8 +82,6 @@ export const buildRecommendations = (analysis: Analysis, entries: Entry[], aiMes
 
   return recommendations;
 };
-
-export const getSpecialistsForAnalysis = (analysis: Analysis): Specialist[] => chooseSpecialists(analysis);
 
 export const buildAdvicePrompt = (analysis: Analysis, entries: Entry[]) => {
   const latestEntry = entries[0];
