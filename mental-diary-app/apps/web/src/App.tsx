@@ -268,9 +268,9 @@ const App = () => {
             <span className="pill pill-neutral">Spec {dashboard?.specialistProvider || '...'}</span>
             {dashboard && <span className={riskClassMap[dashboard.analysis.riskLevel]}>{riskLabelMap[dashboard.analysis.riskLevel]}</span>}
             <button type="button" className="ghost-btn" onClick={() => setTheme((current) => (current === 'light' ? 'dark' : 'light'))}>
-              Тема: {theme === 'light' ? 'Светлая' : 'Темная'}
+              {/* Тема: {theme === 'light' ? 'Светлая' : 'Темная'} */} Настройки
             </button>
-            <button type="button" className="ghost-btn" onClick={() => void loadDashboard()}>Обновить</button>
+            <button type="button" className="ghost-btn" onClick={() => void loadDashboard()}>Профиль</button>
           </div>
         </header>
 
