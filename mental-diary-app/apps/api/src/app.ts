@@ -90,7 +90,7 @@ export const createApp = (service: DiaryService) => {
       status: 'ok',
       storageMode: dashboard.storageMode,
       aiProvider: dashboard.aiProvider,
-      specialistProvider: dashboard.specialistProvider,
+      supportProvider: dashboard.supportProvider,
       entries: dashboard.entries.length
     });
   }));
@@ -119,9 +119,13 @@ export const createApp = (service: DiaryService) => {
     response.json(await service.getRecommendations());
   }));
 
-  app.get('/api/specialists', asyncHandler(async (_request, response) => {
+  app.get('/api/system/meta', asyncHandler(async (_request, response) => {
+    response.json(await service.getSystemMeta());
+  }));
+
+  app.get('/api/support', asyncHandler(async (_request, response) => {
     const dashboard = await service.getDashboard();
-    response.json(dashboard.specialists);
+    response.json(dashboard.supportActions);
   }));
 
   app.get('/api/forum/posts', asyncHandler(async (_request, response) => {

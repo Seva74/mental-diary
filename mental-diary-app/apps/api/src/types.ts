@@ -35,13 +35,13 @@ export interface Recommendation {
   severity: 'info' | 'warning' | 'critical';
 }
 
-export interface Specialist {
+export interface SupportAction {
   id: string;
-  name: string;
-  specialization: string;
-  availability: string;
-  contact: string;
+  title: string;
+  summary: string;
+  action: string;
   reason: string;
+  priority: 'low' | 'medium' | 'high';
 }
 
 export interface ForumPost {
@@ -70,11 +70,26 @@ export interface Article {
 export interface DashboardData {
   storageMode: 'memory' | 'postgres';
   aiProvider: string;
-  specialistProvider: string;
+  supportProvider: string;
+  system: SystemMeta;
   entries: Entry[];
   analysis: Analysis;
   recommendations: Recommendation[];
-  specialists: Specialist[];
+  supportActions: SupportAction[];
   forumPosts: ForumPost[];
   articles: Article[];
+}
+
+export interface IntegrationStatus {
+  provider: string;
+  mode: 'fallback' | 'external';
+  configured: boolean;
+  description: string;
+  contract: string[];
+}
+
+export interface SystemMeta {
+  storageMode: 'memory' | 'postgres';
+  ai: IntegrationStatus;
+  support: IntegrationStatus;
 }

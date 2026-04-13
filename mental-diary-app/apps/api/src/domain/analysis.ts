@@ -75,7 +75,7 @@ export const computeAnalysis = (entries: Entry[]): Analysis => {
   ];
 
   if (riskLevel === 'critical') {
-    summaryParts.push('Система видит критический профиль и рекомендует связаться со специалистом.');
+    summaryParts.push('Система видит критический профиль и рекомендует снизить нагрузку, вернуть сон и подключить внешнюю поддержку.');
   } else if (riskLevel === 'high') {
     summaryParts.push(`Наблюдается ${moodDirection} тренда, стоит снизить нагрузку и проверить восстановление.`);
   } else if (riskLevel === 'moderate') {
