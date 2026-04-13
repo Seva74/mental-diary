@@ -1,4 +1,4 @@
-import { DashboardData, EntryFormState, ForumFormState } from './types';
+import { DashboardData, EntryFormState, ForumFormState, SystemMeta } from './types';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api';
 
@@ -28,6 +28,8 @@ const requestJson = async <T>(path: string, options?: RequestInit): Promise<T> =
 };
 
 export const getDashboard = () => requestJson<DashboardData>('/dashboard');
+
+export const getSystemMeta = () => requestJson<SystemMeta>('/system/meta');
 
 export const createEntry = (form: EntryFormState) =>
   requestJson<{ entry: DashboardData['entries'][number]; dashboard: DashboardData }>('/entries', {

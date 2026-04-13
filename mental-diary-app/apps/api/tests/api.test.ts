@@ -2,12 +2,12 @@ import request from 'supertest';
 import { createApp } from '../src/app';
 import { MemoryEntryStore } from '../src/infrastructure/entryStore';
 import { createAiAdapter } from '../src/infrastructure/aiAdapter';
-import { createSpecialistGateway } from '../src/infrastructure/specialistGateway';
+import { createSupportGateway } from '../src/infrastructure/supportGateway';
 import { DiaryService } from '../src/services/diaryService';
 
 describe('API scenarios', () => {
   it('returns dashboard data and accepts a new entry', async () => {
-    const service = new DiaryService(new MemoryEntryStore(), createAiAdapter(), createSpecialistGateway());
+    const service = new DiaryService(new MemoryEntryStore(), createAiAdapter(), createSupportGateway());
     await service.bootstrap();
     const app = createApp(service);
 
@@ -33,7 +33,7 @@ describe('API scenarios', () => {
   });
 
   it('rejects invalid payloads', async () => {
-    const service = new DiaryService(new MemoryEntryStore(), createAiAdapter(), createSpecialistGateway());
+    const service = new DiaryService(new MemoryEntryStore(), createAiAdapter(), createSupportGateway());
     await service.bootstrap();
     const app = createApp(service);
 
@@ -49,7 +49,7 @@ describe('API scenarios', () => {
   });
 
   it('serves forum and blog prototype modules', async () => {
-    const service = new DiaryService(new MemoryEntryStore(), createAiAdapter(), createSpecialistGateway());
+    const service = new DiaryService(new MemoryEntryStore(), createAiAdapter(), createSupportGateway());
     await service.bootstrap();
     const app = createApp(service);
 
@@ -71,5 +71,30 @@ describe('API scenarios', () => {
     const blogResponse = await request(app).get('/api/blog/articles');
     expect(blogResponse.status).toBe(200);
     expect(blogResponse.body.length).toBeGreaterThan(0);
+  });
+
+  it('exposes system integration metadata', async () => {
+    const service = new DiaryService(new MemoryEntryStore(), createAiAdapter(), createSupportGateway());
+    await service.bootstrap();
+    const app = createApp(service);
+
+    const response = await request(app).get('/api/system/meta');
+
+    expect(response.status).toBe(200);
+    expect(response.body.storageMode).toBeDefined();
+    expect(response.body.ai.contract).toContain('analysis.riskLevel');
+    expect(response.body.support.mode).toBeDefined();
+  });
+
+  it('serves safe support actions', async () => {
+    const service = new DiaryService(new MemoryEntryStore(), createAiAdapter(), createSupportGateway());
+    await service.bootstrap();
+    const app = createApp(service);
+
+    const response = await request(app).get('/api/support');
+
+    expect(response.status).toBe(200);
+    expect(response.body.length).toBeGreaterThan(0);
+    expect(response.body[0].action).toBeDefined();
   });
 });

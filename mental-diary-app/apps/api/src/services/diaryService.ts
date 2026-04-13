@@ -2,9 +2,9 @@ import { computeAnalysis } from '../domain/analysis';
 import { buildRecommendations } from '../domain/recommendations';
 import { createAiAdapter, AiAdapter } from '../infrastructure/aiAdapter';
 import { createEntryStore, EntryStore } from '../infrastructure/entryStore';
-import { createSpecialistGateway, SpecialistGateway } from '../infrastructure/specialistGateway';
+import { createSupportGateway, SupportGateway } from '../infrastructure/supportGateway';
 import { demoArticles, demoEntries, demoForumPosts } from '../seed';
-import { Article, DashboardData, Entry, EntryInput, ForumPost, ForumPostInput } from '../types';
+import { Article, DashboardData, Entry, EntryInput, ForumPost, ForumPostInput, SystemMeta } from '../types';
 
 export class DiaryService {
   private forumPosts: ForumPost[] = [...demoForumPosts].sort((left, right) => right.createdAt.localeCompare(left.createdAt));
@@ -13,12 +13,12 @@ export class DiaryService {
   constructor(
     private readonly store: EntryStore,
     private readonly aiAdapter: AiAdapter,
-    private readonly specialistGateway: SpecialistGateway
+    private readonly supportGateway: SupportGateway
   ) {}
 
   static async create(databaseUrl?: string): Promise<DiaryService> {
     const store = await createEntryStore(databaseUrl);
-    return new DiaryService(store, createAiAdapter(), createSpecialistGateway());
+    return new DiaryService(store, createAiAdapter(), createSupportGateway());
   }
 
   async bootstrap(): Promise<void> {
@@ -59,19 +59,25 @@ export class DiaryService {
     const analysis = computeAnalysis(entries);
     const aiMessage = await this.aiAdapter.createAdvice(analysis, entries);
     const recommendations = buildRecommendations(analysis, entries, aiMessage);
-    const specialists = await this.specialistGateway.findSpecialists(analysis);
+    const supportActions = await this.supportGateway.findSupportActions(analysis);
+    const system = this.buildSystemMeta();
 
     return {
       storageMode: this.store.mode,
       aiProvider: this.aiAdapter.provider,
-      specialistProvider: this.specialistGateway.provider,
+      supportProvider: this.supportGateway.provider,
+      system,
       entries,
       analysis,
       recommendations,
-      specialists,
+      supportActions,
       forumPosts: await this.getForumPosts(),
       articles: await this.getArticles()
     };
+  }
+
+  async getSystemMeta(): Promise<SystemMeta> {
+    return this.buildSystemMeta();
   }
 
   async getAnalysis() {
@@ -84,5 +90,43 @@ export class DiaryService {
     const analysis = computeAnalysis(entries);
     const aiMessage = await this.aiAdapter.createAdvice(analysis, entries);
     return buildRecommendations(analysis, entries, aiMessage);
+  }
+
+  private buildSystemMeta(): SystemMeta {
+    const aiMode = this.aiAdapter.provider === 'fallback' ? 'fallback' : 'external';
+    const supportMode = this.supportGateway.provider === 'local-fallback' ? 'fallback' : 'external';
+
+    return {
+      storageMode: this.store.mode,
+      ai: {
+        provider: this.aiAdapter.provider,
+        mode: aiMode,
+        configured: aiMode === 'external',
+        description: aiMode === 'external'
+          ? 'AI provider is active and ready for external API integration.'
+          : 'Rule-based fallback is active. Backend can later connect OpenAI or Hugging Face here.',
+        contract: [
+          'analysis.riskLevel',
+          'analysis.averageMood',
+          'analysis.averageStress',
+          'analysis.trendScore',
+          'latestEntry.notes'
+        ]
+      },
+      support: {
+        provider: this.supportGateway.provider,
+        mode: supportMode,
+        configured: supportMode === 'external',
+        description: supportMode === 'external'
+          ? 'External support provider is active.'
+          : 'Local fallback support planner is active and can be replaced with a remote self-help API later.',
+        contract: [
+          'analysis.riskLevel',
+          'analysis.averageStress',
+          'analysis.averageSleepHours',
+          'analysis.trendScore'
+        ]
+      }
+    };
   }
 }
