@@ -2,10 +2,10 @@ import request from 'supertest';
 import { createApp } from '../src/app';
 import { createAiAdapter } from '../src/infrastructure/aiAdapter';
 import { MemoryEntryStore } from '../src/infrastructure/entryStore';
+import { createMlAdapter } from '../src/infrastructure/mlAdapter';
 import { MemoryPredictionStore } from '../src/infrastructure/predictionStore';
 import { createSupportGateway } from '../src/infrastructure/supportGateway';
 import { MemoryUserStore } from '../src/infrastructure/userStore';
-import { MentalStateModel } from '../src/ml/mentalStateModel';
 import { DiaryService } from '../src/services/diaryService';
 
 const createTestService = async () => {
@@ -15,7 +15,7 @@ const createTestService = async () => {
     new MemoryPredictionStore(),
     createAiAdapter(),
     createSupportGateway(),
-    new MentalStateModel()
+    createMlAdapter()
   );
   await service.bootstrap();
   return service;

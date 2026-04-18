@@ -23,12 +23,23 @@ services:
       PORT: 3001
       DATABASE_URL: postgresql://mental_diary:mental_diary@db:5432/mental_diary
       AI_PROVIDER: fallback
+      ML_PROVIDER: python
+      ML_SERVICE_URL: http://ml:8000
       FRONTEND_ORIGIN: http://localhost:8080
     ports:
       - "3001:3001"
     depends_on:
       db:
         condition: service_healthy
+      ml:
+        condition: service_started
+
+  ml:
+    build:
+      context: .
+      dockerfile: services/ml/Dockerfile
+    ports:
+      - "8000:8000"
 
   web:
     build:

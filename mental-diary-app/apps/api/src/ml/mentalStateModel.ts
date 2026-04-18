@@ -19,6 +19,13 @@ const buildSyntheticSnapshot = (
   noteRecoveryScore: number,
   tagRiskScore: number,
   tagRecoveryScore: number,
+  depressiveToneScore: number,
+  hopelessnessScore: number,
+  socialWithdrawalScore: number,
+  selfWorthRiskScore: number,
+  somaticBurdenScore: number,
+  emotionalIntensityScore: number,
+  positiveAffectScore: number,
   volatilityScore: number
 ): ModelFeatureSnapshot => ({
   averageMood,
@@ -32,60 +39,60 @@ const buildSyntheticSnapshot = (
   noteRecoveryScore,
   tagRiskScore,
   tagRecoveryScore,
+  depressiveToneScore,
+  hopelessnessScore,
+  socialWithdrawalScore,
+  selfWorthRiskScore,
+  somaticBurdenScore,
+  emotionalIntensityScore,
+  positiveAffectScore,
   volatilityScore
 });
 
 const oneHot = (index: number) => labels.map((_label, currentIndex) => (currentIndex === index ? 1 : 0));
 
+const vary = (value: number, offset: number, factor: number, min: number, max: number) => clamp(value + offset * factor, min, max);
+
 const buildTrainingSet = (): TrainingSample[] => {
   const samples: Array<{ snapshot: ModelFeatureSnapshot; label: MentalStateLabel }> = [];
 
   const stableProfiles = [
-    buildSyntheticSnapshot(7.4, 7.1, 7.8, 3.1, 0.3, -0.1, 0.1, 0.1, 1.2, 0, 0.5, 0.4),
-    buildSyntheticSnapshot(6.9, 6.6, 7.2, 3.9, 0.2, 0.1, 0, 0.2, 1, 0.1, 0.4, 0.5),
-    buildSyntheticSnapshot(7.8, 7.5, 8.1, 2.8, 0.1, -0.2, 0.2, 0, 1.4, 0, 0.6, 0.3)
+    buildSyntheticSnapshot(7.4, 7.1, 7.8, 3.1, 0.3, -0.1, 0.1, 0.1, 1.2, 0, 0.5, 0.05, 0.02, 0.05, 0.03, 0.2, 0.2, 1.1, 0.4),
+    buildSyntheticSnapshot(6.9, 6.6, 7.2, 3.9, 0.2, 0.1, 0, 0.2, 1, 0.1, 0.4, 0.08, 0.03, 0.04, 0.02, 0.3, 0.2, 0.9, 0.5)
   ];
 
   const fatiguedProfiles = [
-    buildSyntheticSnapshot(5.4, 4.1, 5.1, 5, -0.4, 0.2, -0.5, 0.8, 0.4, 0.2, 0.1, 0.8),
-    buildSyntheticSnapshot(5.9, 4.5, 4.8, 5.2, -0.3, 0.1, -0.4, 1.1, 0.3, 0.3, 0, 0.9),
-    buildSyntheticSnapshot(5.1, 3.8, 5.3, 5.6, -0.5, 0.3, -0.2, 0.9, 0.2, 0.4, 0, 1.2)
+    buildSyntheticSnapshot(5.4, 4.1, 5.1, 5, -0.4, 0.2, -0.5, 0.8, 0.4, 0.2, 0.1, 0.3, 0.1, 0.15, 0.12, 0.9, 0.35, 0.25, 0.8),
+    buildSyntheticSnapshot(5.1, 3.8, 5.3, 5.6, -0.5, 0.3, -0.2, 0.9, 0.2, 0.4, 0, 0.32, 0.14, 0.18, 0.1, 1.2, 0.3, 0.2, 1.2)
   ];
 
   const stressedProfiles = [
-    buildSyntheticSnapshot(4.8, 5.1, 6.1, 7.3, -0.5, 0.6, -0.2, 1.5, 0.2, 0.4, 0, 1),
-    buildSyntheticSnapshot(4.5, 4.9, 5.8, 8, -0.6, 0.8, -0.1, 1.7, 0.1, 0.5, 0, 1.1),
-    buildSyntheticSnapshot(5.2, 5.4, 6.4, 7.1, -0.4, 0.5, 0, 1.4, 0.2, 0.3, 0, 1.3)
+    buildSyntheticSnapshot(4.8, 5.1, 6.1, 7.3, -0.5, 0.6, -0.2, 1.5, 0.2, 0.4, 0, 0.45, 0.22, 0.2, 0.18, 0.6, 0.5, 0.18, 1),
+    buildSyntheticSnapshot(4.5, 4.9, 5.8, 8, -0.6, 0.8, -0.1, 1.7, 0.1, 0.5, 0, 0.52, 0.28, 0.18, 0.16, 0.7, 0.55, 0.12, 1.1)
   ];
 
   const burnoutProfiles = [
-    buildSyntheticSnapshot(3.2, 2.9, 4.5, 8.7, -0.8, 0.7, -0.4, 2, 0, 0.5, 0, 1.5),
-    buildSyntheticSnapshot(2.8, 2.4, 4.1, 9.1, -0.7, 0.9, -0.5, 2.4, 0, 0.6, 0, 1.8),
-    buildSyntheticSnapshot(3.5, 3.1, 4.9, 8.4, -0.6, 0.8, -0.3, 2.1, 0.1, 0.5, 0, 1.4)
+    buildSyntheticSnapshot(3.2, 2.9, 4.5, 8.7, -0.8, 0.7, -0.4, 2, 0, 0.5, 0, 1.4, 1.1, 0.8, 0.9, 1.1, 0.7, 0.05, 1.5),
+    buildSyntheticSnapshot(2.8, 2.4, 4.1, 9.1, -0.7, 0.9, -0.5, 2.4, 0, 0.6, 0, 1.7, 1.3, 0.9, 1.1, 1.4, 0.8, 0.03, 1.8)
   ];
 
   const recoveryProfiles = [
-    buildSyntheticSnapshot(6.2, 5.9, 7.1, 4.2, 0.6, -0.5, 0.4, 0.4, 1.4, 0, 0.6, 0.6),
-    buildSyntheticSnapshot(6.5, 6.1, 7.4, 3.8, 0.7, -0.6, 0.5, 0.3, 1.6, 0, 0.6, 0.5),
-    buildSyntheticSnapshot(5.8, 5.5, 6.8, 4.7, 0.8, -0.7, 0.6, 0.5, 1.3, 0.1, 0.5, 0.7)
+    buildSyntheticSnapshot(6.2, 5.9, 7.1, 4.2, 0.6, -0.5, 0.4, 0.4, 1.4, 0, 0.6, 0.15, 0.05, 0.08, 0.04, 0.35, 0.2, 1.4, 0.6),
+    buildSyntheticSnapshot(6.5, 6.1, 7.4, 3.8, 0.7, -0.6, 0.5, 0.3, 1.6, 0, 0.6, 0.1, 0.04, 0.07, 0.04, 0.25, 0.18, 1.6, 0.5)
   ];
 
   for (const snapshot of stableProfiles) {
     samples.push({ snapshot, label: 'stable' });
   }
-
   for (const snapshot of fatiguedProfiles) {
     samples.push({ snapshot, label: 'fatigued' });
   }
-
   for (const snapshot of stressedProfiles) {
     samples.push({ snapshot, label: 'stressed' });
   }
-
   for (const snapshot of burnoutProfiles) {
     samples.push({ snapshot, label: 'burnout-risk' });
   }
-
   for (const snapshot of recoveryProfiles) {
     samples.push({ snapshot, label: 'recovery' });
   }
@@ -94,21 +101,28 @@ const buildTrainingSet = (): TrainingSample[] => {
     const labelIndex = labels.indexOf(label);
 
     return [0, 1, 2, 3].map((variant) => {
-      const offset = (sampleIndex + 1) * (variant + 1);
+      const offset = ((sampleIndex + 1) * (variant + 1)) % 5 - 2;
       const noisySnapshot: ModelFeatureSnapshot = {
         ...snapshot,
-        averageMood: clamp(snapshot.averageMood + ((offset % 3) - 1) * 0.15, 1, 10),
-        averageEnergy: clamp(snapshot.averageEnergy + ((offset % 5) - 2) * 0.12, 1, 10),
-        averageSleepHours: clamp(snapshot.averageSleepHours + ((offset % 4) - 1.5) * 0.1, 1, 10),
-        averageStress: clamp(snapshot.averageStress + ((offset % 3) - 1) * 0.18, 1, 10),
-        moodTrend: clamp(snapshot.moodTrend + ((offset % 5) - 2) * 0.04, -2, 2),
-        stressTrend: clamp(snapshot.stressTrend + ((offset % 4) - 1.5) * 0.05, -2, 2),
-        sleepTrend: clamp(snapshot.sleepTrend + ((offset % 3) - 1) * 0.05, -2, 2),
-        noteRiskScore: clamp(snapshot.noteRiskScore + ((offset % 4) - 1) * 0.08, 0, 4),
-        noteRecoveryScore: clamp(snapshot.noteRecoveryScore + ((offset % 4) - 2) * 0.08, 0, 4),
-        tagRiskScore: clamp(snapshot.tagRiskScore + ((offset % 3) - 1) * 0.04, 0, 1),
-        tagRecoveryScore: clamp(snapshot.tagRecoveryScore + ((offset % 3) - 1) * 0.04, 0, 1),
-        volatilityScore: clamp(snapshot.volatilityScore + ((offset % 3) - 1) * 0.05, 0, 3)
+        averageMood: vary(snapshot.averageMood, offset, 0.15, 1, 10),
+        averageEnergy: vary(snapshot.averageEnergy, offset, 0.12, 1, 10),
+        averageSleepHours: vary(snapshot.averageSleepHours, offset, 0.1, 1, 10),
+        averageStress: vary(snapshot.averageStress, offset, 0.18, 1, 10),
+        moodTrend: vary(snapshot.moodTrend, offset, 0.04, -2, 2),
+        stressTrend: vary(snapshot.stressTrend, offset, 0.05, -2, 2),
+        sleepTrend: vary(snapshot.sleepTrend, offset, 0.05, -2, 2),
+        noteRiskScore: vary(snapshot.noteRiskScore, offset, 0.08, 0, 4),
+        noteRecoveryScore: vary(snapshot.noteRecoveryScore, offset, 0.08, 0, 4),
+        tagRiskScore: vary(snapshot.tagRiskScore, offset, 0.04, 0, 1),
+        tagRecoveryScore: vary(snapshot.tagRecoveryScore, offset, 0.04, 0, 1),
+        depressiveToneScore: vary(snapshot.depressiveToneScore, offset, 0.08, 0, 4),
+        hopelessnessScore: vary(snapshot.hopelessnessScore, offset, 0.08, 0, 4),
+        socialWithdrawalScore: vary(snapshot.socialWithdrawalScore, offset, 0.06, 0, 4),
+        selfWorthRiskScore: vary(snapshot.selfWorthRiskScore, offset, 0.08, 0, 4),
+        somaticBurdenScore: vary(snapshot.somaticBurdenScore, offset, 0.08, 0, 4),
+        emotionalIntensityScore: vary(snapshot.emotionalIntensityScore, offset, 0.08, 0, 4),
+        positiveAffectScore: vary(snapshot.positiveAffectScore, offset, 0.08, 0, 4),
+        volatilityScore: vary(snapshot.volatilityScore, offset, 0.05, 0, 3)
       };
 
       return {
@@ -122,68 +136,68 @@ const buildTrainingSet = (): TrainingSample[] => {
 const describeState = (label: MentalStateLabel) => {
   switch (label) {
     case 'burnout-risk':
-      return 'Профиль похож на устойчивую перегрузку и риск выгорания.';
+      return 'Профиль похож на устойчивую перегрузку с депрессивными или выгорающими маркерами в тексте.';
     case 'stressed':
-      return 'Профиль указывает на выраженный стрессовый контур.';
+      return 'Профиль указывает на выраженный стрессовый контур и напряжённый язык описания.';
     case 'fatigued':
-      return 'Профиль похож на накопленную усталость и недостаток восстановления.';
+      return 'Профиль похож на накопленную усталость, соматическое истощение и снижение энергии.';
     case 'recovery':
-      return 'Есть признаки восстановления после напряженного периода.';
+      return 'Есть признаки восстановления и более поддерживающего эмоционального фона.';
     default:
-      return 'Состояние выглядит относительно стабильным.';
+      return 'Состояние выглядит относительно стабильным и без сильных депрессивных маркеров.';
   }
 };
 
 const deriveFactors = (snapshot: ModelFeatureSnapshot): PredictionFactor[] => {
   const factors: PredictionFactor[] = [];
 
-  if (snapshot.averageStress >= 7) {
+  if (snapshot.depressiveToneScore >= 0.5) {
     factors.push({
-      id: 'stress-high',
-      label: 'Высокий стресс',
+      id: 'depressive-tone',
+      label: 'Депрессивные маркеры в тексте',
       direction: 'negative',
-      impact: round(snapshot.averageStress / 10),
-      detail: `Средний стресс ${snapshot.averageStress}/10 и тренд ${snapshot.stressTrend >= 0 ? 'не снижается' : 'снижается медленно'}.`
+      impact: round(Math.min(1, snapshot.depressiveToneScore / 2)),
+      detail: 'В заметках есть слова о пустоте, безнадёжности, утрате смысла или эмоциональном онемении.'
     });
   }
 
-  if (snapshot.averageSleepHours <= 5.5) {
+  if (snapshot.hopelessnessScore >= 0.35) {
     factors.push({
-      id: 'sleep-low',
-      label: 'Недостаток сна',
+      id: 'hopelessness',
+      label: 'Безнадёжность',
       direction: 'negative',
-      impact: round((6 - snapshot.averageSleepHours) / 2),
-      detail: `Средний сон ${snapshot.averageSleepHours} ч снижает ресурсность и устойчивость к нагрузке.`
+      impact: round(Math.min(1, snapshot.hopelessnessScore / 2)),
+      detail: 'Текст показывает снижение веры в улучшение ситуации и отсутствие выхода.'
     });
   }
 
-  if (snapshot.averageEnergy <= 4.5) {
+  if (snapshot.selfWorthRiskScore >= 0.3 || snapshot.socialWithdrawalScore >= 0.3) {
     factors.push({
-      id: 'energy-low',
-      label: 'Низкая энергия',
+      id: 'self-worth-and-isolation',
+      label: 'Самообесценивание или изоляция',
       direction: 'negative',
-      impact: round((5 - snapshot.averageEnergy) / 2),
-      detail: `Средняя энергия ${snapshot.averageEnergy}/10 указывает на истощение.`
+      impact: round(Math.min(1, Math.max(snapshot.selfWorthRiskScore, snapshot.socialWithdrawalScore) / 2)),
+      detail: 'Есть признаки самообвинения, ощущения обузы или ухода из контакта с людьми.'
     });
   }
 
-  if (snapshot.moodTrend > 0.25 || snapshot.noteRecoveryScore >= 1) {
+  if (snapshot.somaticBurdenScore >= 0.35 || snapshot.averageEnergy <= 4.5) {
     factors.push({
-      id: 'recovery-signals',
-      label: 'Признаки восстановления',
+      id: 'somatic-fatigue',
+      label: 'Соматическое истощение',
+      direction: 'negative',
+      impact: round(Math.min(1, Math.max(snapshot.somaticBurdenScore / 2, (5 - snapshot.averageEnergy) / 4))),
+      detail: 'Текст и численные метрики указывают на усталость, тяжесть тела, недосып или туман в голове.'
+    });
+  }
+
+  if (snapshot.positiveAffectScore >= 0.35 || snapshot.noteRecoveryScore >= 0.5) {
+    factors.push({
+      id: 'recovery-language',
+      label: 'Поддерживающий язык',
       direction: 'positive',
-      impact: round(Math.max(snapshot.moodTrend, snapshot.noteRecoveryScore / 3)),
-      detail: 'Настроение и текст записей содержат маркеры восстановления и опоры.'
-    });
-  }
-
-  if (snapshot.noteRiskScore >= 1.2 || snapshot.tagRiskScore >= 0.3) {
-    factors.push({
-      id: 'risk-language',
-      label: 'Тревожный словарь',
-      direction: 'negative',
-      impact: round(Math.max(snapshot.noteRiskScore / 3, snapshot.tagRiskScore)),
-      detail: 'В заметках и тегах часто встречаются маркеры перегрузки, тревоги или дедлайнов.'
+      impact: round(Math.min(1, Math.max(snapshot.positiveAffectScore / 2, snapshot.noteRecoveryScore / 3))),
+      detail: 'В заметках встречаются слова о поддержке, облегчении, улучшении и восстановлении.'
     });
   }
 
@@ -193,7 +207,7 @@ const deriveFactors = (snapshot: ModelFeatureSnapshot): PredictionFactor[] => {
       label: 'Нейтральный профиль',
       direction: 'positive',
       impact: 0.2,
-      detail: 'Выраженных негативных факторов по истории записей не обнаружено.'
+      detail: 'Сильных негативных текстовых маркеров не найдено, оценка опирается на общую динамику дневника.'
     });
   }
 
@@ -205,13 +219,13 @@ export class MentalStateModel {
 
   constructor() {
     this.network = new TinyNeuralNetwork({
-      inputSize: 12,
-      hiddenSize: 10,
+      inputSize: 19,
+      hiddenSize: 14,
       outputSize: labels.length,
       learningRate: 0.04,
       seed: 17
     });
-    this.network.train(buildTrainingSet(), 900);
+    this.network.train(buildTrainingSet(), 1000);
   }
 
   assess(entries: Entry[]): ModelAssessment {

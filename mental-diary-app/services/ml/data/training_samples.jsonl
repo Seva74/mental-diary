@@ -1,0 +1,20 @@
+{"text":"I feel stable today. I slept well, had enough energy, and managed my routine calmly.","label":"stable"}
+{"text":"Сегодня спокойно. Был нормальный сон, есть силы, получилось сделать основные дела без перегруза.","label":"stable"}
+{"text":"I am tired and drained. I keep pushing, but my energy is low and I want to lie down.","label":"fatigued"}
+{"text":"Чувствую усталость и истощение, сил почти нет, хочется просто лечь и ничего не делать.","label":"fatigued"}
+{"text":"Everything feels stressful. My head is racing, I worry about deadlines, and I cannot relax.","label":"stressed"}
+{"text":"Постоянное напряжение, тревога, дедлайны давят, не получается расслабиться даже вечером.","label":"stressed"}
+{"text":"I feel empty, hopeless, isolated, and exhausted. Nothing brings joy and I do not see a way out.","label":"burnout-risk"}
+{"text":"Мне очень тяжело, пусто, безнадёжно, ничего не радует, не вижу смысла и сил продолжать в таком темпе.","label":"burnout-risk"}
+{"text":"I am getting a bit better. Sleep is improving, I feel some support, and things are slowly stabilizing.","label":"recovery"}
+{"text":"Становится немного легче, сон выравнивается, появилась поддержка, и я понемногу восстанавливаюсь.","label":"recovery"}
+{"text":"I hate myself, I failed again, and I feel like a burden to everyone around me.","label":"burnout-risk"}
+{"text":"Ненавижу себя, снова всё испортил, чувствую себя обузой и хочу исчезнуть от всех.","label":"burnout-risk"}
+{"text":"I do not want to talk to anyone, I withdrew from everyone, and I feel numb for days.","label":"burnout-risk"}
+{"text":"Не хочу ни с кем говорить, закрылся от всех, уже несколько дней как будто онемел внутри.","label":"burnout-risk"}
+{"text":"It is a hard week, but I can still function if I take breaks and reduce noise.","label":"stressed"}
+{"text":"Неделя тяжёлая, но если делать паузы и убирать лишний шум, я всё ещё могу держаться.","label":"stressed"}
+{"text":"I am sleepy, slow, and foggy. My body feels heavy and I cannot focus for long.","label":"fatigued"}
+{"text":"Сонливость, заторможенность, туман в голове, тело тяжёлое, трудно долго концентрироваться.","label":"fatigued"}
+{"text":"I feel okay, connected, and grounded today. Nothing feels overwhelming right now.","label":"stable"}
+{"text":"Сегодня чувствую себя ровно, есть контакт с собой и людьми, всё не кажется непосильным.","label":"stable"}

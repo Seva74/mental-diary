@@ -2,10 +2,10 @@ import { computeAnalysis } from '../domain/analysis';
 import { buildRecommendations } from '../domain/recommendations';
 import { createAiAdapter, AiAdapter } from '../infrastructure/aiAdapter';
 import { createEntryStore, EntryStore } from '../infrastructure/entryStore';
+import { createMlAdapter, MlAdapter } from '../infrastructure/mlAdapter';
 import { createPredictionStore, PredictionStore } from '../infrastructure/predictionStore';
 import { createSupportGateway, SupportGateway } from '../infrastructure/supportGateway';
 import { createUserStore, UserStore } from '../infrastructure/userStore';
-import { MentalStateModel } from '../ml/mentalStateModel';
 import { demoArticles, demoEntries, demoForumPosts, demoUser } from '../seed';
 import { Article, AuthSessionPayload, DashboardData, Entry, EntryInput, ForumPost, ForumPostInput, PredictionRecord, SessionContext, SystemMeta } from '../types';
 
@@ -19,14 +19,14 @@ export class DiaryService {
     private readonly predictionStore: PredictionStore,
     private readonly aiAdapter: AiAdapter,
     private readonly supportGateway: SupportGateway,
-    private readonly mentalStateModel: MentalStateModel
+    private readonly mlAdapter: MlAdapter
   ) {}
 
   static async create(databaseUrl?: string): Promise<DiaryService> {
     const userStore = await createUserStore(databaseUrl);
     const store = await createEntryStore(databaseUrl);
     const predictionStore = await createPredictionStore(databaseUrl);
-    return new DiaryService(store, userStore, predictionStore, createAiAdapter(), createSupportGateway(), new MentalStateModel());
+    return new DiaryService(store, userStore, predictionStore, createAiAdapter(), createSupportGateway(), createMlAdapter());
   }
 
   async bootstrap(): Promise<void> {
@@ -77,7 +77,7 @@ export class DiaryService {
 
   async getDashboard(session: SessionContext): Promise<DashboardData> {
     const entries = await this.store.listEntries(session.user.id);
-    const modelAssessment = this.mentalStateModel.assess(entries);
+    const modelAssessment = await this.mlAdapter.assess(entries);
     const analysis = computeAnalysis(entries, modelAssessment);
     await this.predictionStore.saveSnapshot(session.user.id, entries, analysis);
     const aiMessage = await this.aiAdapter.createAdvice(analysis, entries);
@@ -107,14 +107,14 @@ export class DiaryService {
 
   async getAnalysis(session: SessionContext) {
     const entries = await this.store.listEntries(session.user.id);
-    const analysis = computeAnalysis(entries, this.mentalStateModel.assess(entries));
+    const analysis = computeAnalysis(entries, await this.mlAdapter.assess(entries));
     await this.predictionStore.saveSnapshot(session.user.id, entries, analysis);
     return analysis;
   }
 
   async getRecommendations(session: SessionContext) {
     const entries = await this.store.listEntries(session.user.id);
-    const analysis = computeAnalysis(entries, this.mentalStateModel.assess(entries));
+    const analysis = computeAnalysis(entries, await this.mlAdapter.assess(entries));
     await this.predictionStore.saveSnapshot(session.user.id, entries, analysis);
     const aiMessage = await this.aiAdapter.createAdvice(analysis, entries);
     return buildRecommendations(analysis, entries, aiMessage);
@@ -156,10 +156,12 @@ export class DiaryService {
         ]
       },
       ml: {
-        provider: 'local-neural-network',
-        mode: 'local-trained',
-        configured: true,
-        description: 'A locally trained lightweight neural network evaluates the diary history, textual markers, and trend features.',
+        provider: this.mlAdapter.provider,
+        mode: this.mlAdapter.mode,
+        configured: this.mlAdapter.configured,
+        description: this.mlAdapter.mode === 'external'
+          ? 'A dedicated Python ML service evaluates diary text and behavioral signals through a separately deployable model stack.'
+          : 'A locally trained lightweight neural network evaluates the diary history, textual markers, and trend features.',
         contract: [
           'analysis.stateLabel',
           'analysis.confidence',

@@ -13,6 +13,13 @@ export interface ModelFeatureSnapshot {
   noteRecoveryScore: number;
   tagRiskScore: number;
   tagRecoveryScore: number;
+  depressiveToneScore: number;
+  hopelessnessScore: number;
+  socialWithdrawalScore: number;
+  selfWorthRiskScore: number;
+  somaticBurdenScore: number;
+  emotionalIntensityScore: number;
+  positiveAffectScore: number;
   volatilityScore: number;
 }
 
@@ -156,8 +163,8 @@ export interface SystemMeta {
   support: IntegrationStatus;
   ml: {
     provider: string;
-    mode: 'local-trained';
-    configured: true;
+    mode: 'local-trained' | 'external';
+    configured: boolean;
     description: string;
     contract: string[];
   };
