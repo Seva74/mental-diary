@@ -26,6 +26,8 @@ const toPredictionRecord = (userId: string, entries: Entry[], analysis: Analysis
   recoveryProbability: analysis.recoveryProbability,
   stressLoad: analysis.stressLoad,
   protectiveScore: analysis.protectiveScore,
+  modelProvider: analysis.modelProvider,
+  modelVersion: analysis.modelVersion,
   summary: analysis.summary
 });
 
@@ -76,11 +78,15 @@ export class PostgresPredictionStore implements PredictionStore {
         recovery_probability numeric(5,4) not null,
         stress_load numeric(5,4) not null,
         protective_score numeric(5,4) not null,
+        model_provider text not null default 'unknown',
+        model_version text not null default 'unknown',
         summary text not null,
         snapshot_signature text not null,
         unique (user_id, snapshot_signature)
       )
     `);
+    await this.pool.query(`alter table prediction_history add column if not exists model_provider text not null default 'unknown'`);
+    await this.pool.query(`alter table prediction_history add column if not exists model_version text not null default 'unknown'`);
   }
 
   async saveSnapshot(userId: string, entries: Entry[], analysis: Analysis): Promise<PredictionRecord | null> {
@@ -93,9 +99,9 @@ export class PostgresPredictionStore implements PredictionStore {
     const result = await this.pool.query<{ inserted: boolean }>(
       `insert into prediction_history (
          id, user_id, created_at, latest_entry_id, entry_count, state_label, risk_level,
-         confidence, burnout_probability, recovery_probability, stress_load, protective_score, summary, snapshot_signature
+         confidence, burnout_probability, recovery_probability, stress_load, protective_score, model_provider, model_version, summary, snapshot_signature
        )
-       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
        on conflict (user_id, snapshot_signature) do nothing
        returning true as inserted`,
       [
@@ -111,6 +117,8 @@ export class PostgresPredictionStore implements PredictionStore {
         record.recoveryProbability,
         record.stressLoad,
         record.protectiveScore,
+        record.modelProvider,
+        record.modelVersion,
         record.summary,
         signature
       ]
@@ -133,11 +141,13 @@ export class PostgresPredictionStore implements PredictionStore {
       recovery_probability: string;
       stress_load: string;
       protective_score: string;
+      model_provider: string;
+      model_version: string;
       summary: string;
     }>(
       `select
          id, user_id, created_at, latest_entry_id, entry_count, state_label, risk_level,
-         confidence, burnout_probability, recovery_probability, stress_load, protective_score, summary
+         confidence, burnout_probability, recovery_probability, stress_load, protective_score, model_provider, model_version, summary
        from prediction_history
        where user_id = $1
        order by created_at desc
@@ -158,6 +168,8 @@ export class PostgresPredictionStore implements PredictionStore {
       recoveryProbability: Number(row.recovery_probability),
       stressLoad: Number(row.stress_load),
       protectiveScore: Number(row.protective_score),
+      modelProvider: row.model_provider,
+      modelVersion: row.model_version,
       summary: row.summary
     }));
   }

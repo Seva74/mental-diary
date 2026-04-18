@@ -12,6 +12,7 @@ export const AnalysisView = ({ dashboard }: AnalysisViewProps) => {
         <p>{dashboard.analysis.summary}</p>
         <div className="metric-grid">
           <div className="metric"><span>state</span><strong>{dashboard.analysis.stateLabel}</strong></div>
+          <div className="metric"><span>model</span><strong>{dashboard.analysis.modelVersion}</strong></div>
           <div className="metric"><span>confidence</span><strong>{Math.round(dashboard.analysis.confidence * 100)}%</strong></div>
           <div className="metric"><span>trend</span><strong>{dashboard.analysis.trendScore.toFixed(1)}</strong></div>
           <div className="metric"><span>energy</span><strong>{dashboard.analysis.averageEnergy.toFixed(1)}</strong></div>
@@ -66,6 +67,7 @@ export const AnalysisView = ({ dashboard }: AnalysisViewProps) => {
                   {Math.round(item.confidence * 100)}%
                 </span>
               </div>
+              <span className="action">{item.modelVersion}</span>
               <p>{item.summary}</p>
             </div>
           ))}

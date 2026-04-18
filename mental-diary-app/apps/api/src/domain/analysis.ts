@@ -102,6 +102,8 @@ export const computeAnalysis = (entries: Entry[], modelAssessment: ModelAssessme
       recoveryProbability: modelAssessment.recoveryProbability,
       stressLoad: 0,
       protectiveScore: 0,
+      modelProvider: modelAssessment.modelProvider,
+      modelVersion: modelAssessment.modelVersion,
       factors: modelAssessment.factors,
       featureSnapshot: modelAssessment.featureSnapshot,
       summary: 'Пока нет записей. Добавьте несколько дней наблюдений, чтобы модель оценила динамику состояния.'
@@ -122,6 +124,8 @@ export const computeAnalysis = (entries: Entry[], modelAssessment: ModelAssessme
     recoveryProbability: modelAssessment.recoveryProbability,
     stressLoad,
     protectiveScore,
+    modelProvider: modelAssessment.modelProvider,
+    modelVersion: modelAssessment.modelVersion,
     factors: modelAssessment.factors,
     featureSnapshot: modelAssessment.featureSnapshot
   };

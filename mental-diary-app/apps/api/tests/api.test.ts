@@ -51,6 +51,7 @@ describe('API scenarios', () => {
     expect(dashboardResponse.status).toBe(200);
     expect(dashboardResponse.body.viewer.id).toBe(sessionResponse.body.user.id);
     expect(dashboardResponse.body.analysis.stateLabel).toBeDefined();
+    expect(dashboardResponse.body.analysis.modelVersion).toBeDefined();
     expect(dashboardResponse.body.entries).toEqual([]);
   });
 
@@ -162,5 +163,6 @@ describe('API scenarios', () => {
     expect(response.status).toBe(200);
     expect(response.body.length).toBeGreaterThan(0);
     expect(response.body[0].stateLabel).toBeDefined();
+    expect(response.body[0].modelVersion).toBeDefined();
   });
 });

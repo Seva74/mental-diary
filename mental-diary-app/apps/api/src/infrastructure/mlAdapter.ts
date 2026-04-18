@@ -6,6 +6,7 @@ export interface MlAdapter {
   mode: 'local-trained' | 'external';
   configured: boolean;
   assess(entries: Entry[]): Promise<ModelAssessment>;
+  getCurrentModel(): Promise<{ provider: string; version: string; backend: string }>;
 }
 
 const createLocalMlAdapter = (): MlAdapter => {
@@ -17,6 +18,13 @@ const createLocalMlAdapter = (): MlAdapter => {
     configured: true,
     async assess(entries: Entry[]) {
       return model.assess(entries);
+    },
+    async getCurrentModel() {
+      return {
+        provider: 'local-neural-network',
+        version: 'local-ts-v2',
+        backend: 'local-neural-network'
+      };
     }
   };
 };
@@ -47,6 +55,24 @@ const createPythonMlAdapter = (serviceUrl: string): MlAdapter => {
         return await response.json() as ModelAssessment;
       } catch {
         return localFallback.assess(entries);
+      }
+    },
+    async getCurrentModel() {
+      try {
+        const response = await fetch(new URL('/models/current', serviceUrl).toString());
+
+        if (!response.ok) {
+          throw new Error(`ML service metadata failed with status ${response.status}`);
+        }
+
+        const payload = await response.json() as { provider: string; version: string; backend: string };
+        return payload;
+      } catch {
+        return {
+          provider: 'local-neural-network',
+          version: 'local-ts-v2',
+          backend: 'local-neural-network'
+        };
       }
     }
   };

@@ -57,6 +57,8 @@ class PredictResponse(BaseModel):
     stressProbability: float
     recoveryProbability: float
     burnoutProbability: float
+    modelProvider: str
+    modelVersion: str
     featureSnapshot: FeatureSnapshotPayload
     factors: List[PredictionFactorPayload]
     explanation: str
@@ -65,4 +67,16 @@ class PredictResponse(BaseModel):
 class TrainResponse(BaseModel):
     trained: bool
     samples: int
+    labels: List[str]
+    provider: str
+    version: str
+    backend: str
+
+
+class ModelInfoResponse(BaseModel):
+    provider: str
+    version: str
+    backend: str
+    trainedAt: str
+    sampleCount: int
     labels: List[str]

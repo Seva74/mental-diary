@@ -37,6 +37,8 @@ export interface ModelAssessment {
   stressProbability: number;
   recoveryProbability: number;
   burnoutProbability: number;
+  modelProvider: string;
+  modelVersion: string;
   featureSnapshot: ModelFeatureSnapshot;
   factors: PredictionFactor[];
   explanation: string;
@@ -92,6 +94,8 @@ export interface Analysis {
   recoveryProbability: number;
   stressLoad: number;
   protectiveScore: number;
+  modelProvider: string;
+  modelVersion: string;
   factors: PredictionFactor[];
   featureSnapshot: ModelFeatureSnapshot;
   summary: string;
@@ -110,6 +114,8 @@ export interface PredictionRecord {
   recoveryProbability: number;
   stressLoad: number;
   protectiveScore: number;
+  modelProvider: string;
+  modelVersion: string;
   summary: string;
 }
 

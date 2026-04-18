@@ -241,6 +241,8 @@ export class MentalStateModel {
       stressProbability: round((probabilities[labels.indexOf('stressed')] ?? 0) + (probabilities[labels.indexOf('burnout-risk')] ?? 0) * 0.65),
       recoveryProbability: round((probabilities[labels.indexOf('recovery')] ?? 0) + (probabilities[labels.indexOf('stable')] ?? 0) * 0.35),
       burnoutProbability: round(probabilities[labels.indexOf('burnout-risk')] ?? 0),
+      modelProvider: 'local-neural-network',
+      modelVersion: 'local-ts-v2',
       featureSnapshot: snapshot,
       factors,
       explanation: describeState(primaryState)

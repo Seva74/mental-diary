@@ -38,6 +38,10 @@ services:
     build:
       context: .
       dockerfile: services/ml/Dockerfile
+    environment:
+      ML_MODEL_BACKEND: transformer-embeddings
+      ML_MODEL_VERSION: 2026.04.18
+      ML_TRANSFORMER_MODEL: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
     ports:
       - "8000:8000"
 
