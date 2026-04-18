@@ -1,0 +1,19 @@
+[project]
+name = "mental-diary-ml"
+version = "0.1.0"
+description = "Python ML service for mental diary state analysis"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi==0.115.0",
+  "uvicorn==0.30.6",
+  "scikit-learn==1.5.2",
+  "joblib==1.4.2",
+  "numpy==2.1.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+package = false
