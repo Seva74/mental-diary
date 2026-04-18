@@ -5,28 +5,34 @@ import { Entry, EntryInput } from '../types';
 
 export interface EntryStore {
   mode: 'memory' | 'postgres';
-  countEntries(): Promise<number>;
-  listEntries(): Promise<Entry[]>;
-  saveEntry(input: EntryInput, createdAt?: string): Promise<Entry>;
-  seedEntries(entries: Entry[]): Promise<void>;
+  countEntries(userId?: string): Promise<number>;
+  listEntries(userId: string): Promise<Entry[]>;
+  saveEntry(userId: string, input: EntryInput, createdAt?: string): Promise<Entry>;
+  seedEntries(userId: string, entries: Entry[]): Promise<void>;
 }
 
 export class MemoryEntryStore implements EntryStore {
   public readonly mode = 'memory' as const;
-  private entries: Entry[] = [...demoEntries];
+  private entries: Entry[] = [];
 
-  async countEntries(): Promise<number> {
-    return this.entries.length;
+  constructor() {
+    this.entries = [...demoEntries];
   }
 
-  async listEntries(): Promise<Entry[]> {
-    return [...this.entries].sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+  async countEntries(userId?: string): Promise<number> {
+    return userId ? this.entries.filter((entry) => entry.userId === userId).length : this.entries.length;
   }
 
-  async saveEntry(input: EntryInput, createdAt = new Date().toISOString()): Promise<Entry> {
+  async listEntries(userId: string): Promise<Entry[]> {
+    return this.entries
+      .filter((entry) => entry.userId === userId)
+      .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+  }
+
+  async saveEntry(userId: string, input: EntryInput, createdAt = new Date().toISOString()): Promise<Entry> {
     const entry: Entry = {
       id: randomUUID(),
-      userId: 'demo-user',
+      userId,
       createdAt,
       ...input
     };
@@ -35,10 +41,14 @@ export class MemoryEntryStore implements EntryStore {
     return entry;
   }
 
-  async seedEntries(entries: Entry[]): Promise<void> {
-    if (this.entries.length === 0) {
-      this.entries = [...entries];
+  async seedEntries(userId: string, entries: Entry[]): Promise<void> {
+    const existingCount = await this.countEntries(userId);
+
+    if (existingCount > 0) {
+      return;
     }
+
+    this.entries.push(...entries.map((entry) => ({ ...entry, userId })));
   }
 }
 
@@ -51,7 +61,7 @@ export class PostgresEntryStore implements EntryStore {
     await this.pool.query(`
       create table if not exists entries (
         id text primary key,
-        user_id text not null,
+        user_id text not null references users(id) on delete cascade,
         created_at timestamptz not null,
         mood_score integer not null,
         energy integer not null,
@@ -61,14 +71,22 @@ export class PostgresEntryStore implements EntryStore {
         tags jsonb not null default '[]'::jsonb
       )
     `);
+
+    await this.pool.query(`
+      create index if not exists idx_entries_user_created_at
+      on entries (user_id, created_at desc)
+    `);
   }
 
-  async countEntries(): Promise<number> {
-    const result = await this.pool.query<{ count: string }>('select count(*)::text as count from entries');
+  async countEntries(userId?: string): Promise<number> {
+    const result = userId
+      ? await this.pool.query<{ count: string }>('select count(*)::text as count from entries where user_id = $1', [userId])
+      : await this.pool.query<{ count: string }>('select count(*)::text as count from entries');
+
     return Number(result.rows[0]?.count ?? '0');
   }
 
-  async listEntries(): Promise<Entry[]> {
+  async listEntries(userId: string): Promise<Entry[]> {
     const result = await this.pool.query<{
       id: string;
       user_id: string;
@@ -79,19 +97,12 @@ export class PostgresEntryStore implements EntryStore {
       stress: number;
       notes: string;
       tags: string[];
-    }>('select * from entries order by created_at desc');
+    }>(
+      'select * from entries where user_id = $1 order by created_at desc',
+      [userId]
+    );
 
-    return result.rows.map((row: {
-      id: string;
-      user_id: string;
-      created_at: Date;
-      mood_score: number;
-      energy: number;
-      sleep_hours: string;
-      stress: number;
-      notes: string;
-      tags: string[];
-    }) => ({
+    return result.rows.map((row) => ({
       id: row.id,
       userId: row.user_id,
       createdAt: row.created_at.toISOString(),
@@ -104,10 +115,10 @@ export class PostgresEntryStore implements EntryStore {
     }));
   }
 
-  async saveEntry(input: EntryInput, createdAt = new Date().toISOString()): Promise<Entry> {
+  async saveEntry(userId: string, input: EntryInput, createdAt = new Date().toISOString()): Promise<Entry> {
     const entry: Entry = {
       id: randomUUID(),
-      userId: 'demo-user',
+      userId,
       createdAt,
       ...input
     };
@@ -121,8 +132,8 @@ export class PostgresEntryStore implements EntryStore {
     return entry;
   }
 
-  async seedEntries(entries: Entry[]): Promise<void> {
-    const currentCount = await this.countEntries();
+  async seedEntries(userId: string, entries: Entry[]): Promise<void> {
+    const currentCount = await this.countEntries(userId);
 
     if (currentCount > 0) {
       return;
@@ -132,7 +143,7 @@ export class PostgresEntryStore implements EntryStore {
       await this.pool.query(
         `insert into entries (id, user_id, created_at, mood_score, energy, sleep_hours, stress, notes, tags)
          values ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-        [entry.id, entry.userId, entry.createdAt, entry.moodScore, entry.energy, entry.sleepHours, entry.stress, entry.notes, JSON.stringify(entry.tags)]
+        [entry.id, userId, entry.createdAt, entry.moodScore, entry.energy, entry.sleepHours, entry.stress, entry.notes, JSON.stringify(entry.tags)]
       );
     }
   }
@@ -143,12 +154,8 @@ export const createEntryStore = async (databaseUrl?: string): Promise<EntryStore
     return new MemoryEntryStore();
   }
 
-  try {
-    const pool = new Pool({ connectionString: databaseUrl });
-    const store = new PostgresEntryStore(pool);
-    await store.init();
-    return store;
-  } catch {
-    return new MemoryEntryStore();
-  }
+  const pool = new Pool({ connectionString: databaseUrl });
+  const store = new PostgresEntryStore(pool);
+  await store.init();
+  return store;
 };

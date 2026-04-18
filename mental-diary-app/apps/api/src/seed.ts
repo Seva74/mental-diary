@@ -1,4 +1,12 @@
-import { Article, Entry, ForumPost, SupportAction } from './types';
+import { AppUser, Article, Entry, ForumPost, SupportAction } from './types';
+
+export const demoUser: AppUser = {
+  id: 'demo-user',
+  email: null,
+  displayName: 'Demo User',
+  role: 'guest',
+  createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10).toISOString()
+};
 
 export const demoEntries: Entry[] = [
   {

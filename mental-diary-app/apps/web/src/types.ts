@@ -55,6 +55,22 @@ export interface Analysis {
   summary: string;
 }
 
+export interface AppUser {
+  id: string;
+  email: string | null;
+  displayName: string;
+  role: 'guest' | 'user' | 'admin';
+  createdAt: string;
+}
+
+export interface UserSession {
+  id: string;
+  userId: string;
+  token: string;
+  createdAt: string;
+  expiresAt: string;
+}
+
 export interface Recommendation {
   id: string;
   source: 'rule' | 'ai' | 'fallback';
@@ -95,12 +111,18 @@ export interface DashboardData {
   aiProvider: string;
   supportProvider: string;
   system: SystemMeta;
+  viewer: AppUser;
   entries: Entry[];
   analysis: Analysis;
   recommendations: Recommendation[];
   supportActions: SupportAction[];
   forumPosts: ForumPost[];
   articles: Article[];
+}
+
+export interface AuthSessionPayload {
+  user: AppUser;
+  session: UserSession;
 }
 
 export interface IntegrationStatus {

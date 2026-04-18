@@ -1,14 +1,16 @@
 import request from 'supertest';
 import { createApp } from '../src/app';
-import { MemoryEntryStore } from '../src/infrastructure/entryStore';
 import { createAiAdapter } from '../src/infrastructure/aiAdapter';
+import { MemoryEntryStore } from '../src/infrastructure/entryStore';
 import { createSupportGateway } from '../src/infrastructure/supportGateway';
+import { MemoryUserStore } from '../src/infrastructure/userStore';
 import { MentalStateModel } from '../src/ml/mentalStateModel';
 import { DiaryService } from '../src/services/diaryService';
 
 const createTestService = async () => {
   const service = new DiaryService(
     new MemoryEntryStore(),
+    new MemoryUserStore(),
     createAiAdapter(),
     createSupportGateway(),
     new MentalStateModel()
@@ -17,16 +19,44 @@ const createTestService = async () => {
   return service;
 };
 
+const createAuthorizedAgent = async (app: ReturnType<typeof createApp>) => {
+  const sessionResponse = await request(app)
+    .post('/api/auth/guest-session')
+    .send({});
+
+  const token = sessionResponse.body.session.token as string;
+
+  return {
+    token,
+    get: (path: string) => request(app).get(path).set('Authorization', `Bearer ${token}`),
+    post: (path: string) => request(app).post(path).set('Authorization', `Bearer ${token}`)
+  };
+};
+
 describe('API scenarios', () => {
-  it('returns dashboard data and accepts a new entry', async () => {
+  it('creates a guest session and returns a user-scoped dashboard', async () => {
     const app = createApp(await createTestService());
-    const dashboardResponse = await request(app).get('/api/dashboard');
+    const sessionResponse = await request(app).post('/api/auth/guest-session').send({});
+
+    expect(sessionResponse.status).toBe(201);
+    expect(sessionResponse.body.user.id).toBeDefined();
+    expect(sessionResponse.body.session.token).toBeDefined();
+
+    const dashboardResponse = await request(app)
+      .get('/api/dashboard')
+      .set('Authorization', `Bearer ${sessionResponse.body.session.token}`);
 
     expect(dashboardResponse.status).toBe(200);
-    expect(dashboardResponse.body.entries.length).toBeGreaterThan(0);
+    expect(dashboardResponse.body.viewer.id).toBe(sessionResponse.body.user.id);
     expect(dashboardResponse.body.analysis.stateLabel).toBeDefined();
+    expect(dashboardResponse.body.entries).toEqual([]);
+  });
 
-    const createResponse = await request(app)
+  it('accepts a new entry inside an authenticated session', async () => {
+    const app = createApp(await createTestService());
+    const agent = await createAuthorizedAgent(app);
+
+    const createResponse = await agent
       .post('/api/entries')
       .send({
         moodScore: 7,
@@ -40,12 +70,14 @@ describe('API scenarios', () => {
     expect(createResponse.status).toBe(201);
     expect(createResponse.body.entry.notes).toContain('спокойнее');
     expect(createResponse.body.dashboard.analysis.confidence).toBeGreaterThan(0);
+    expect(createResponse.body.dashboard.entries).toHaveLength(1);
   });
 
   it('rejects invalid payloads', async () => {
     const app = createApp(await createTestService());
+    const agent = await createAuthorizedAgent(app);
 
-    const response = await request(app)
+    const response = await agent
       .post('/api/entries')
       .send({
         moodScore: 12,
@@ -54,6 +86,14 @@ describe('API scenarios', () => {
 
     expect(response.status).toBe(400);
     expect(response.body.error).toBeDefined();
+  });
+
+  it('rejects protected routes without a session token', async () => {
+    const app = createApp(await createTestService());
+    const response = await request(app).get('/api/dashboard');
+
+    expect(response.status).toBe(401);
+    expect(response.body.error).toContain('Session token');
   });
 
   it('serves forum and blog prototype modules', async () => {
@@ -93,7 +133,8 @@ describe('API scenarios', () => {
 
   it('serves safe support actions', async () => {
     const app = createApp(await createTestService());
-    const response = await request(app).get('/api/support');
+    const agent = await createAuthorizedAgent(app);
+    const response = await agent.get('/api/support');
 
     expect(response.status).toBe(200);
     expect(response.body.length).toBeGreaterThan(0);

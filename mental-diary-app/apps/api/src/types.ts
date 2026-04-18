@@ -50,6 +50,27 @@ export interface Entry extends EntryInput {
   createdAt: string;
 }
 
+export interface AppUser {
+  id: string;
+  email: string | null;
+  displayName: string;
+  role: 'guest' | 'user' | 'admin';
+  createdAt: string;
+}
+
+export interface UserSession {
+  id: string;
+  userId: string;
+  token: string;
+  createdAt: string;
+  expiresAt: string;
+}
+
+export interface SessionContext {
+  user: AppUser;
+  session: UserSession;
+}
+
 export interface Analysis {
   entryCount: number;
   averageMood: number;
@@ -115,12 +136,18 @@ export interface DashboardData {
   aiProvider: string;
   supportProvider: string;
   system: SystemMeta;
+  viewer: AppUser;
   entries: Entry[];
   analysis: Analysis;
   recommendations: Recommendation[];
   supportActions: SupportAction[];
   forumPosts: ForumPost[];
   articles: Article[];
+}
+
+export interface AuthSessionPayload {
+  user: AppUser;
+  session: UserSession;
 }
 
 export interface IntegrationStatus {

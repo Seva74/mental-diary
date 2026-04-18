@@ -1,11 +1,17 @@
 import cors from 'cors';
 import express, { NextFunction, Request, Response } from 'express';
 import { DiaryService } from './services/diaryService';
-import { EntryInput, ForumPostInput } from './types';
+import { EntryInput, ForumPostInput, SessionContext } from './types';
 
 class RequestValidationError extends Error {
   readonly status = 400;
 }
+
+class UnauthorizedError extends Error {
+  readonly status = 401;
+}
+
+type AuthenticatedRequest = Request & { sessionContext?: SessionContext };
 
 const requiredNumber = (value: unknown, min: number, max: number, fieldName: string) => {
   const numeric = typeof value === 'string' ? Number(value) : value;
@@ -71,10 +77,38 @@ const parseForumPostInput = (body: unknown): ForumPostInput => {
   };
 };
 
+const resolveSessionToken = (request: Request) => {
+  const authHeader = request.header('authorization');
+
+  if (authHeader?.startsWith('Bearer ')) {
+    return authHeader.slice('Bearer '.length).trim();
+  }
+
+  const sessionHeader = request.header('x-session-token');
+  return sessionHeader?.trim() || null;
+};
+
 const asyncHandler = (handler: (request: Request, response: Response, next: NextFunction) => Promise<void>) => {
   return (request: Request, response: Response, next: NextFunction) => {
     void handler(request, response, next).catch(next);
   };
+};
+
+const requireSession = async (request: AuthenticatedRequest, service: DiaryService) => {
+  const token = resolveSessionToken(request);
+
+  if (!token) {
+    throw new UnauthorizedError('Session token is required');
+  }
+
+  const sessionContext = await service.getSessionContext(token);
+
+  if (!sessionContext) {
+    throw new UnauthorizedError('Session is invalid or expired');
+  }
+
+  request.sessionContext = sessionContext;
+  return sessionContext;
 };
 
 export const createApp = (service: DiaryService) => {
@@ -85,47 +119,60 @@ export const createApp = (service: DiaryService) => {
   app.use(cors({ origin: allowedOrigin || true }));
 
   app.get('/health', asyncHandler(async (_request, response) => {
-    const dashboard = await service.getDashboard();
     response.json({
       status: 'ok',
-      storageMode: dashboard.storageMode,
-      aiProvider: dashboard.aiProvider,
-      supportProvider: dashboard.supportProvider,
-      mlProvider: dashboard.system.ml.provider,
-      entries: dashboard.entries.length
+      storageMode: (await service.getSystemMeta()).storageMode,
+      aiProvider: (await service.getSystemMeta()).ai.provider,
+      mlProvider: (await service.getSystemMeta()).ml.provider
     });
   }));
 
-  app.get('/api/dashboard', asyncHandler(async (_request, response) => {
-    response.json(await service.getDashboard());
+  app.post('/api/auth/guest-session', asyncHandler(async (request, response) => {
+    const displayName = typeof request.body?.displayName === 'string' ? request.body.displayName.trim() : undefined;
+    response.status(201).json(await service.createGuestSession(displayName));
   }));
 
-  app.get('/api/entries', asyncHandler(async (_request, response) => {
-    response.json(await service.getEntries());
+  app.get('/api/auth/me', asyncHandler(async (request, response) => {
+    const sessionContext = await requireSession(request as AuthenticatedRequest, service);
+    response.json(sessionContext);
+  }));
+
+  app.get('/api/dashboard', asyncHandler(async (request, response) => {
+    const sessionContext = await requireSession(request as AuthenticatedRequest, service);
+    response.json(await service.getDashboard(sessionContext));
+  }));
+
+  app.get('/api/entries', asyncHandler(async (request, response) => {
+    const sessionContext = await requireSession(request as AuthenticatedRequest, service);
+    response.json(await service.getEntries(sessionContext));
   }));
 
   app.post('/api/entries', asyncHandler(async (request, response) => {
-    const entry = await service.createEntry(parseEntryInput(request.body));
+    const sessionContext = await requireSession(request as AuthenticatedRequest, service);
+    const entry = await service.createEntry(sessionContext, parseEntryInput(request.body));
     response.status(201).json({
       entry,
-      dashboard: await service.getDashboard()
+      dashboard: await service.getDashboard(sessionContext)
     });
   }));
 
-  app.get('/api/analysis', asyncHandler(async (_request, response) => {
-    response.json(await service.getAnalysis());
+  app.get('/api/analysis', asyncHandler(async (request, response) => {
+    const sessionContext = await requireSession(request as AuthenticatedRequest, service);
+    response.json(await service.getAnalysis(sessionContext));
   }));
 
-  app.get('/api/recommendations', asyncHandler(async (_request, response) => {
-    response.json(await service.getRecommendations());
+  app.get('/api/recommendations', asyncHandler(async (request, response) => {
+    const sessionContext = await requireSession(request as AuthenticatedRequest, service);
+    response.json(await service.getRecommendations(sessionContext));
   }));
 
   app.get('/api/system/meta', asyncHandler(async (_request, response) => {
     response.json(await service.getSystemMeta());
   }));
 
-  app.get('/api/support', asyncHandler(async (_request, response) => {
-    const dashboard = await service.getDashboard();
+  app.get('/api/support', asyncHandler(async (request, response) => {
+    const sessionContext = await requireSession(request as AuthenticatedRequest, service);
+    const dashboard = await service.getDashboard(sessionContext);
     response.json(dashboard.supportActions);
   }));
 

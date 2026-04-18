@@ -3,9 +3,10 @@ import { buildRecommendations } from '../domain/recommendations';
 import { createAiAdapter, AiAdapter } from '../infrastructure/aiAdapter';
 import { createEntryStore, EntryStore } from '../infrastructure/entryStore';
 import { createSupportGateway, SupportGateway } from '../infrastructure/supportGateway';
+import { createUserStore, UserStore } from '../infrastructure/userStore';
 import { MentalStateModel } from '../ml/mentalStateModel';
-import { demoArticles, demoEntries, demoForumPosts } from '../seed';
-import { Article, DashboardData, Entry, EntryInput, ForumPost, ForumPostInput, SystemMeta } from '../types';
+import { demoArticles, demoEntries, demoForumPosts, demoUser } from '../seed';
+import { AppUser, Article, AuthSessionPayload, DashboardData, Entry, EntryInput, ForumPost, ForumPostInput, SessionContext, SystemMeta } from '../types';
 
 export class DiaryService {
   private forumPosts: ForumPost[] = [...demoForumPosts].sort((left, right) => right.createdAt.localeCompare(left.createdAt));
@@ -13,26 +14,37 @@ export class DiaryService {
 
   constructor(
     private readonly store: EntryStore,
+    private readonly userStore: UserStore,
     private readonly aiAdapter: AiAdapter,
     private readonly supportGateway: SupportGateway,
     private readonly mentalStateModel: MentalStateModel
   ) {}
 
   static async create(databaseUrl?: string): Promise<DiaryService> {
+    const userStore = await createUserStore(databaseUrl);
     const store = await createEntryStore(databaseUrl);
-    return new DiaryService(store, createAiAdapter(), createSupportGateway(), new MentalStateModel());
+    return new DiaryService(store, userStore, createAiAdapter(), createSupportGateway(), new MentalStateModel());
   }
 
   async bootstrap(): Promise<void> {
-    await this.store.seedEntries(demoEntries);
+    await this.userStore.ensureUser(demoUser);
+    await this.store.seedEntries(demoUser.id, demoEntries);
   }
 
-  async getEntries(): Promise<Entry[]> {
-    return this.store.listEntries();
+  async createGuestSession(displayName?: string): Promise<AuthSessionPayload> {
+    return this.userStore.createGuestSession(displayName);
   }
 
-  async createEntry(input: EntryInput): Promise<Entry> {
-    return this.store.saveEntry(input);
+  async getSessionContext(token: string): Promise<SessionContext | null> {
+    return this.userStore.getSessionContext(token);
+  }
+
+  async getEntries(session: SessionContext): Promise<Entry[]> {
+    return this.store.listEntries(session.user.id);
+  }
+
+  async createEntry(session: SessionContext, input: EntryInput): Promise<Entry> {
+    return this.store.saveEntry(session.user.id, input);
   }
 
   async getForumPosts(): Promise<ForumPost[]> {
@@ -56,8 +68,8 @@ export class DiaryService {
     return [...this.articles];
   }
 
-  async getDashboard(): Promise<DashboardData> {
-    const entries = await this.store.listEntries();
+  async getDashboard(session: SessionContext): Promise<DashboardData> {
+    const entries = await this.store.listEntries(session.user.id);
     const modelAssessment = this.mentalStateModel.assess(entries);
     const analysis = computeAnalysis(entries, modelAssessment);
     const aiMessage = await this.aiAdapter.createAdvice(analysis, entries);
@@ -70,6 +82,7 @@ export class DiaryService {
       aiProvider: this.aiAdapter.provider,
       supportProvider: this.supportGateway.provider,
       system,
+      viewer: session.user,
       entries,
       analysis,
       recommendations,
@@ -83,13 +96,13 @@ export class DiaryService {
     return this.buildSystemMeta();
   }
 
-  async getAnalysis() {
-    const entries = await this.store.listEntries();
+  async getAnalysis(session: SessionContext) {
+    const entries = await this.store.listEntries(session.user.id);
     return computeAnalysis(entries, this.mentalStateModel.assess(entries));
   }
 
-  async getRecommendations() {
-    const entries = await this.store.listEntries();
+  async getRecommendations(session: SessionContext) {
+    const entries = await this.store.listEntries(session.user.id);
     const analysis = computeAnalysis(entries, this.mentalStateModel.assess(entries));
     const aiMessage = await this.aiAdapter.createAdvice(analysis, entries);
     return buildRecommendations(analysis, entries, aiMessage);
