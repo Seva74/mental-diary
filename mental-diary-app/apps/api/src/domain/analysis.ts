@@ -1,4 +1,4 @@
-import { Analysis, Entry, RiskLevel } from '../types';
+import { Analysis, Entry, ModelAssessment, RiskLevel } from '../types';
 
 const round = (value: number) => Math.round(value * 10) / 10;
 
@@ -26,13 +26,20 @@ const resolveRiskLevel = (
   averageMood: number,
   averageStress: number,
   averageSleepHours: number,
-  trendScore: number
+  trendScore: number,
+  burnoutProbability: number,
+  stressProbability: number
 ): RiskLevel => {
-  if (averageMood <= 3.5 || averageStress >= 8 || (averageSleepHours <= 5 && averageStress >= 6)) {
+  if (
+    burnoutProbability >= 0.55 ||
+    averageMood <= 3.5 ||
+    averageStress >= 8 ||
+    (averageSleepHours <= 5 && averageStress >= 6)
+  ) {
     return 'critical';
   }
 
-  if (averageMood <= 4.5 || averageStress >= 7 || trendScore <= -1.5) {
+  if (stressProbability >= 0.6 || averageMood <= 4.5 || averageStress >= 7 || trendScore <= -1.5) {
     return 'high';
   }
 
@@ -43,14 +50,42 @@ const resolveRiskLevel = (
   return 'low';
 };
 
-export const computeAnalysis = (entries: Entry[]): Analysis => {
+const buildSummary = (analysis: Omit<Analysis, 'summary'>) => {
+  const factorText = analysis.factors[0]?.label
+    ? `Главный фактор: ${analysis.factors[0].label.toLowerCase()}.`
+    : '';
+
+  return [
+    `Состояние классифицировано как ${analysis.stateLabel}.`,
+    `Уверенность модели ${Math.round(analysis.confidence * 100)}%.`,
+    `Среднее настроение ${analysis.averageMood}/10, стресс ${analysis.averageStress}/10, сон ${analysis.averageSleepHours} ч.`,
+    `Риск ${analysis.riskLevel}, вероятность выгорания ${Math.round(analysis.burnoutProbability * 100)}%.`,
+    factorText
+  ].join(' ').trim();
+};
+
+export const computeAnalysis = (entries: Entry[], modelAssessment: ModelAssessment): Analysis => {
   const ordered = [...entries].sort((left, right) => right.createdAt.localeCompare(left.createdAt));
   const averageMood = average(entries.map((entry) => entry.moodScore));
   const averageEnergy = average(entries.map((entry) => entry.energy));
   const averageSleepHours = average(entries.map((entry) => entry.sleepHours));
   const averageStress = average(entries.map((entry) => entry.stress));
   const trendScore = calculateTrendScore(entries);
-  const riskLevel = resolveRiskLevel(averageMood, averageStress, averageSleepHours, trendScore);
+  const riskLevel = resolveRiskLevel(
+    averageMood,
+    averageStress,
+    averageSleepHours,
+    trendScore,
+    modelAssessment.burnoutProbability,
+    modelAssessment.stressProbability
+  );
+  const stressLoad = round((averageStress / 10) * 0.6 + Math.max(0, -trendScore) * 0.15 + modelAssessment.stressProbability * 0.25);
+  const protectiveScore = round(
+    (averageSleepHours / 10) * 0.35 +
+    (averageEnergy / 10) * 0.25 +
+    modelAssessment.recoveryProbability * 0.25 +
+    Math.max(0, trendScore) * 0.15
+  );
 
   if (entries.length === 0) {
     return {
@@ -61,30 +96,19 @@ export const computeAnalysis = (entries: Entry[]): Analysis => {
       averageStress: 0,
       trendScore: 0,
       riskLevel: 'low',
-      summary: 'Пока нет записей. Добавьте первую запись, чтобы увидеть аналитику.'
+      stateLabel: modelAssessment.primaryState,
+      confidence: modelAssessment.confidence,
+      burnoutProbability: modelAssessment.burnoutProbability,
+      recoveryProbability: modelAssessment.recoveryProbability,
+      stressLoad: 0,
+      protectiveScore: 0,
+      factors: modelAssessment.factors,
+      featureSnapshot: modelAssessment.featureSnapshot,
+      summary: 'Пока нет записей. Добавьте несколько дней наблюдений, чтобы модель оценила динамику состояния.'
     };
   }
 
-  const latestMood = ordered[0]?.moodScore ?? averageMood;
-  const moodDirection = trendScore >= 0 ? 'улучшение' : 'снижение';
-  const summaryParts = [
-    `Среднее настроение ${averageMood}/10`,
-    `стресс ${averageStress}/10`,
-    `сон ${averageSleepHours} ч`,
-    `последняя оценка ${latestMood}/10`
-  ];
-
-  if (riskLevel === 'critical') {
-    summaryParts.push('Система видит критический профиль и рекомендует снизить нагрузку, вернуть сон и подключить внешнюю поддержку.');
-  } else if (riskLevel === 'high') {
-    summaryParts.push(`Наблюдается ${moodDirection} тренда, стоит снизить нагрузку и проверить восстановление.`);
-  } else if (riskLevel === 'moderate') {
-    summaryParts.push('Состояние нестабильно, полезно удерживать ритм и продолжать записи.');
-  } else {
-    summaryParts.push('Состояние выглядит устойчивым, текущий ритм можно сохранять.');
-  }
-
-  return {
+  const analysisBase: Omit<Analysis, 'summary'> = {
     entryCount: entries.length,
     averageMood,
     averageEnergy,
@@ -92,6 +116,19 @@ export const computeAnalysis = (entries: Entry[]): Analysis => {
     averageStress,
     trendScore,
     riskLevel,
-    summary: summaryParts.join(' ')
+    stateLabel: modelAssessment.primaryState,
+    confidence: modelAssessment.confidence,
+    burnoutProbability: modelAssessment.burnoutProbability,
+    recoveryProbability: modelAssessment.recoveryProbability,
+    stressLoad,
+    protectiveScore,
+    factors: modelAssessment.factors,
+    featureSnapshot: modelAssessment.featureSnapshot
+  };
+  const latestMood = ordered[0]?.moodScore ?? averageMood;
+
+  return {
+    ...analysisBase,
+    summary: `${modelAssessment.explanation} Последняя оценка настроения ${latestMood}/10. ${buildSummary(analysisBase)}`
   };
 };

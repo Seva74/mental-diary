@@ -109,6 +109,17 @@ export const buildHomeInsight = (dashboard: DashboardData, reference = new Date(
   }
 
   const latestEntry = dashboard.entries[0];
+
+  if (!latestEntry) {
+    return {
+      eyebrow: 'Данные',
+      title: 'Нет записей для анализа',
+      detail: 'Добавьте хотя бы одну запись, чтобы дашборд мог показать динамику и рекомендации.',
+      action: 'Откройте дневник и сохраните первую запись.',
+      tone: 'low'
+    };
+  }
+
   const freshness = formatFreshness(latestEntry.createdAt, reference);
   const daysSinceLastEntry = getDaysSince(latestEntry.createdAt, reference);
 

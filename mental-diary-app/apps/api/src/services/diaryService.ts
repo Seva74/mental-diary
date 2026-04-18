@@ -3,6 +3,7 @@ import { buildRecommendations } from '../domain/recommendations';
 import { createAiAdapter, AiAdapter } from '../infrastructure/aiAdapter';
 import { createEntryStore, EntryStore } from '../infrastructure/entryStore';
 import { createSupportGateway, SupportGateway } from '../infrastructure/supportGateway';
+import { MentalStateModel } from '../ml/mentalStateModel';
 import { demoArticles, demoEntries, demoForumPosts } from '../seed';
 import { Article, DashboardData, Entry, EntryInput, ForumPost, ForumPostInput, SystemMeta } from '../types';
 
@@ -13,12 +14,13 @@ export class DiaryService {
   constructor(
     private readonly store: EntryStore,
     private readonly aiAdapter: AiAdapter,
-    private readonly supportGateway: SupportGateway
+    private readonly supportGateway: SupportGateway,
+    private readonly mentalStateModel: MentalStateModel
   ) {}
 
   static async create(databaseUrl?: string): Promise<DiaryService> {
     const store = await createEntryStore(databaseUrl);
-    return new DiaryService(store, createAiAdapter(), createSupportGateway());
+    return new DiaryService(store, createAiAdapter(), createSupportGateway(), new MentalStateModel());
   }
 
   async bootstrap(): Promise<void> {
@@ -56,7 +58,8 @@ export class DiaryService {
 
   async getDashboard(): Promise<DashboardData> {
     const entries = await this.store.listEntries();
-    const analysis = computeAnalysis(entries);
+    const modelAssessment = this.mentalStateModel.assess(entries);
+    const analysis = computeAnalysis(entries, modelAssessment);
     const aiMessage = await this.aiAdapter.createAdvice(analysis, entries);
     const recommendations = buildRecommendations(analysis, entries, aiMessage);
     const supportActions = await this.supportGateway.findSupportActions(analysis);
@@ -82,12 +85,12 @@ export class DiaryService {
 
   async getAnalysis() {
     const entries = await this.store.listEntries();
-    return computeAnalysis(entries);
+    return computeAnalysis(entries, this.mentalStateModel.assess(entries));
   }
 
   async getRecommendations() {
     const entries = await this.store.listEntries();
-    const analysis = computeAnalysis(entries);
+    const analysis = computeAnalysis(entries, this.mentalStateModel.assess(entries));
     const aiMessage = await this.aiAdapter.createAdvice(analysis, entries);
     return buildRecommendations(analysis, entries, aiMessage);
   }
@@ -125,6 +128,20 @@ export class DiaryService {
           'analysis.averageStress',
           'analysis.averageSleepHours',
           'analysis.trendScore'
+        ]
+      },
+      ml: {
+        provider: 'local-neural-network',
+        mode: 'local-trained',
+        configured: true,
+        description: 'A locally trained lightweight neural network evaluates the diary history, textual markers, and trend features.',
+        contract: [
+          'analysis.stateLabel',
+          'analysis.confidence',
+          'analysis.burnoutProbability',
+          'analysis.recoveryProbability',
+          'analysis.factors',
+          'analysis.featureSnapshot'
         ]
       }
     };

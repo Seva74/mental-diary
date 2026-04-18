@@ -4,18 +4,39 @@ const createId = (prefix: string) => `${prefix}-${Math.random().toString(36).sli
 
 const fallbackAdvice = (analysis: Analysis) => {
   if (analysis.riskLevel === 'critical') {
-    return 'Сейчас лучше сократить нагрузку, восстановить сон и не оставаться с тяжелым состоянием в одиночку.';
+    return 'Нагрузка выглядит небезопасной. Снизьте обязательства на ближайшие сутки и подключите живую поддержку.';
   }
 
-  if (analysis.riskLevel === 'high') {
-    return 'Нагрузка заметно влияет на состояние. Нужен более бережный режим, короткие паузы и отслеживание сна.';
+  if (analysis.stateLabel === 'fatigued') {
+    return 'Основной сигнал сейчас не кризис, а истощение. Приоритетом должен быть сон, паузы и сокращение лишних задач.';
   }
 
-  if (analysis.riskLevel === 'moderate') {
-    return 'Сохраняйте регулярность записей, короткие прогулки и стабильный режим дня помогут удержать баланс.';
+  if (analysis.stateLabel === 'stressed') {
+    return 'Стресс держится устойчиво. Разбейте день на короткие блоки, уберите лишние триггеры и заранее спланируйте восстановление.';
   }
 
-  return 'Состояние выглядит устойчивым. Продолжайте текущий ритм и отмечайте изменения, если они появятся.';
+  if (analysis.stateLabel === 'recovery') {
+    return 'Есть позитивная динамика. Сохраняйте рабочий ритм восстановления и не возвращайтесь резко к перегрузке.';
+  }
+
+  return 'Состояние относительно стабильное. Поддерживайте сон, режим и регулярные записи, чтобы модель видела динамику.';
+};
+
+const recommendationByFactor = (analysis: Analysis): Recommendation[] => {
+  return analysis.factors.map((factor) => ({
+    id: createId('factor'),
+    source: 'rule',
+    title: factor.label,
+    detail: factor.detail,
+    action: factor.direction === 'negative'
+      ? 'Сделайте это приоритетом на ближайшие 24 часа и проверьте, уменьшился ли фактор в следующей записи.'
+      : 'Закрепите этот паттерн и повторите его в ближайшие дни, чтобы усилить защитный эффект.',
+    severity: factor.direction === 'negative' && factor.impact >= 0.75
+      ? 'critical'
+      : factor.direction === 'negative'
+        ? 'warning'
+        : 'info'
+  }));
 };
 
 export const buildRecommendations = (analysis: Analysis, entries: Entry[], aiMessage: string | null): Recommendation[] => {
@@ -25,47 +46,58 @@ export const buildRecommendations = (analysis: Analysis, entries: Entry[], aiMes
     recommendations.push({
       id: createId('rec'),
       source: 'rule',
-      title: 'Снизить нагрузку сегодня',
-      detail: 'Зафиксировано критическое сочетание стресса, сна и настроения. Уберите лишние задачи и дайте себе паузу.',
-      action: 'Ограничить нагрузку на 24 часа, попросить поддержки у близкого человека и использовать экстренную помощь, если чувствуешь риск для безопасности.',
+      title: 'Срочная разгрузка',
+      detail: 'Комбинация низкого ресурса, высокого стресса и модели burnout-risk требует немедленного снижения нагрузки.',
+      action: 'Уберите необязательные задачи, сообщите близкому человеку о состоянии и при ухудшении обратитесь за профессиональной помощью.',
       severity: 'critical'
     });
-  } else if (analysis.riskLevel === 'high') {
+  } else if (analysis.stateLabel === 'fatigued') {
     recommendations.push({
       id: createId('rec'),
       source: 'rule',
-      title: 'Пересобрать режим дня',
-      detail: 'Показатели указывают на перегрузку. Улучшение сна и короткий отдых помогут стабилизировать тренд.',
-      action: 'Добавить окно отдыха и сократить вечернюю активность.',
+      title: 'Режим восстановления',
+      detail: 'Ключевой дефицит сейчас связан со сном и энергией, а не только с эмоциями.',
+      action: 'На 2-3 дня зафиксируйте время сна, сократите вечернюю нагрузку и добавьте один период отдыха без экрана.',
       severity: 'warning'
     });
-  } else if (analysis.riskLevel === 'moderate') {
+  } else if (analysis.stateLabel === 'stressed') {
     recommendations.push({
       id: createId('rec'),
       source: 'rule',
-      title: 'Поддержать стабильность',
-      detail: 'Состояние меняется, но пока без явного риска. Полезно сохранить регулярность и не терять ритм.',
-      action: 'Продолжать записи и отмечать, что влияет на настроение.',
+      title: 'Снижение стресса',
+      detail: 'Стрессовый профиль держится по нескольким признакам одновременно: показатели, тренд и словарь записей.',
+      action: 'Разбейте крупные задачи на короткие блоки по 25-40 минут и после каждого блока фиксируйте уровень напряжения.',
+      severity: 'warning'
+    });
+  } else if (analysis.stateLabel === 'recovery') {
+    recommendations.push({
+      id: createId('rec'),
+      source: 'rule',
+      title: 'Закрепить улучшение',
+      detail: 'Динамика стала лучше, но восстановление еще нужно стабилизировать.',
+      action: 'Сохраните рабочие привычки, которые улучшили сон или настроение, и не повышайте нагрузку скачком.',
       severity: 'info'
     });
   } else {
     recommendations.push({
       id: createId('rec'),
       source: 'rule',
-      title: 'Сохранить текущий ритм',
-      detail: 'Стабильный профиль позволяет не менять многое в привычках, а только наблюдать за динамикой.',
-      action: 'Продолжать дневник и отслеживать закономерности.',
+      title: 'Поддерживать стабильность',
+      detail: 'Текущие показатели не выглядят тревожными, но ценность системы в отслеживании тренда.',
+      action: 'Продолжайте ежедневные записи и отмечайте, какие факторы сильнее всего влияют на настроение.',
       severity: 'info'
     });
   }
+
+  recommendations.push(...recommendationByFactor(analysis));
 
   if (aiMessage) {
     recommendations.push({
       id: createId('rec'),
       source: 'ai',
-      title: 'Совет от AI-адаптера',
+      title: 'Сводка помощника',
       detail: aiMessage,
-      action: 'Использовать подсказку как мягкий ориентир, а не как диагноз.',
+      action: 'Используйте это как ориентир для самонаблюдения, а не как медицинский диагноз.',
       severity: analysis.riskLevel === 'critical' ? 'critical' : 'warning'
     });
   }
@@ -74,13 +106,13 @@ export const buildRecommendations = (analysis: Analysis, entries: Entry[], aiMes
   recommendations.push({
     id: createId('rec'),
     source: 'fallback',
-    title: 'Контрольная точка на завтра',
-    detail: `Зафиксируйте короткую запись утром и вечером, чтобы увидеть, как меняется состояние при среднем настроении ${recentMood}/10.`,
-    action: 'Сделать две короткие записи и сравнить их через сутки.',
+    title: 'Следующая запись',
+    detail: `Последний зафиксированный настрой ${recentMood}/10. Следующая запись нужна, чтобы проверить, меняется ли состояние после рекомендаций.`,
+    action: 'Добавьте новую запись через 12-24 часа и опишите, что изменилось в сне, нагрузке и напряжении.',
     severity: 'info'
   });
 
-  return recommendations;
+  return recommendations.slice(0, 6);
 };
 
 export const buildAdvicePrompt = (analysis: Analysis, entries: Entry[]) => {
@@ -88,9 +120,13 @@ export const buildAdvicePrompt = (analysis: Analysis, entries: Entry[]) => {
 
   return [
     `Risk level: ${analysis.riskLevel}`,
+    `State label: ${analysis.stateLabel}`,
+    `Confidence: ${analysis.confidence}`,
     `Average mood: ${analysis.averageMood}`,
     `Average stress: ${analysis.averageStress}`,
-    `Trend score: ${analysis.trendScore}`,
+    `Average sleep hours: ${analysis.averageSleepHours}`,
+    `Burnout probability: ${analysis.burnoutProbability}`,
+    `Main factors: ${analysis.factors.map((factor) => factor.label).join(', ') || 'none'}`,
     latestEntry ? `Latest note: ${latestEntry.notes}` : 'Latest note: none'
   ].join('\n');
 };

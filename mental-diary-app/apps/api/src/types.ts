@@ -1,4 +1,39 @@
 export type RiskLevel = 'low' | 'moderate' | 'high' | 'critical';
+export type MentalStateLabel = 'stable' | 'fatigued' | 'stressed' | 'burnout-risk' | 'recovery';
+
+export interface ModelFeatureSnapshot {
+  averageMood: number;
+  averageEnergy: number;
+  averageSleepHours: number;
+  averageStress: number;
+  moodTrend: number;
+  stressTrend: number;
+  sleepTrend: number;
+  noteRiskScore: number;
+  noteRecoveryScore: number;
+  tagRiskScore: number;
+  tagRecoveryScore: number;
+  volatilityScore: number;
+}
+
+export interface PredictionFactor {
+  id: string;
+  label: string;
+  direction: 'positive' | 'negative';
+  impact: number;
+  detail: string;
+}
+
+export interface ModelAssessment {
+  primaryState: MentalStateLabel;
+  confidence: number;
+  stressProbability: number;
+  recoveryProbability: number;
+  burnoutProbability: number;
+  featureSnapshot: ModelFeatureSnapshot;
+  factors: PredictionFactor[];
+  explanation: string;
+}
 
 export interface EntryInput {
   moodScore: number;
@@ -23,6 +58,14 @@ export interface Analysis {
   averageStress: number;
   trendScore: number;
   riskLevel: RiskLevel;
+  stateLabel: MentalStateLabel;
+  confidence: number;
+  burnoutProbability: number;
+  recoveryProbability: number;
+  stressLoad: number;
+  protectiveScore: number;
+  factors: PredictionFactor[];
+  featureSnapshot: ModelFeatureSnapshot;
   summary: string;
 }
 
@@ -92,4 +135,11 @@ export interface SystemMeta {
   storageMode: 'memory' | 'postgres';
   ai: IntegrationStatus;
   support: IntegrationStatus;
+  ml: {
+    provider: string;
+    mode: 'local-trained';
+    configured: true;
+    description: string;
+    contract: string[];
+  };
 }

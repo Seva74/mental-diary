@@ -91,6 +91,7 @@ export const createApp = (service: DiaryService) => {
       storageMode: dashboard.storageMode,
       aiProvider: dashboard.aiProvider,
       supportProvider: dashboard.supportProvider,
+      mlProvider: dashboard.system.ml.provider,
       entries: dashboard.entries.length
     });
   }));

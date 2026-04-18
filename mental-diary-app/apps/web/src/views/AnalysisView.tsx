@@ -8,17 +8,34 @@ export const AnalysisView = ({ dashboard }: AnalysisViewProps) => {
   return (
     <section className="split-grid">
       <article className="card">
-        <h2>ВИ2: Аналитика тенденций</h2>
+        <h2>AI analysis</h2>
         <p>{dashboard.analysis.summary}</p>
         <div className="metric-grid">
-          <div className="metric"><span>Тренд</span><strong>{dashboard.analysis.trendScore.toFixed(1)}</strong></div>
-          <div className="metric"><span>Энергия</span><strong>{dashboard.analysis.averageEnergy.toFixed(1)}</strong></div>
-          <div className="metric"><span>Сон</span><strong>{dashboard.analysis.averageSleepHours.toFixed(1)} ч</strong></div>
-          <div className="metric"><span>Стресс</span><strong>{dashboard.analysis.averageStress.toFixed(1)}</strong></div>
+          <div className="metric"><span>state</span><strong>{dashboard.analysis.stateLabel}</strong></div>
+          <div className="metric"><span>confidence</span><strong>{Math.round(dashboard.analysis.confidence * 100)}%</strong></div>
+          <div className="metric"><span>trend</span><strong>{dashboard.analysis.trendScore.toFixed(1)}</strong></div>
+          <div className="metric"><span>energy</span><strong>{dashboard.analysis.averageEnergy.toFixed(1)}</strong></div>
+          <div className="metric"><span>sleep</span><strong>{dashboard.analysis.averageSleepHours.toFixed(1)} h</strong></div>
+          <div className="metric"><span>stress</span><strong>{dashboard.analysis.averageStress.toFixed(1)}</strong></div>
+          <div className="metric"><span>burnout</span><strong>{Math.round(dashboard.analysis.burnoutProbability * 100)}%</strong></div>
+          <div className="metric"><span>recovery</span><strong>{Math.round(dashboard.analysis.recoveryProbability * 100)}%</strong></div>
+        </div>
+        <div className="stack-list">
+          {dashboard.analysis.factors.map((factor) => (
+            <div className="list-item column" key={factor.id}>
+              <div className="item-head">
+                <strong>{factor.label}</strong>
+                <span className={factor.direction === 'negative' ? 'pill pill-high' : 'pill pill-low'}>
+                  {factor.direction}
+                </span>
+              </div>
+              <p>{factor.detail}</p>
+            </div>
+          ))}
         </div>
       </article>
       <article className="card">
-        <h2>ВИ3: Рекомендации</h2>
+        <h2>Recommendations</h2>
         <div className="stack-list">
           {dashboard.recommendations.map((item) => (
             <div className="list-item column" key={item.id}>
