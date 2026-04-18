@@ -166,6 +166,11 @@ export const createApp = (service: DiaryService) => {
     response.json(await service.getRecommendations(sessionContext));
   }));
 
+  app.get('/api/predictions', asyncHandler(async (request, response) => {
+    const sessionContext = await requireSession(request as AuthenticatedRequest, service);
+    response.json(await service.getPredictionHistory(sessionContext));
+  }));
+
   app.get('/api/system/meta', asyncHandler(async (_request, response) => {
     response.json(await service.getSystemMeta());
   }));

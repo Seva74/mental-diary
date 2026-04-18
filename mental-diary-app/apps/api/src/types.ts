@@ -90,6 +90,22 @@ export interface Analysis {
   summary: string;
 }
 
+export interface PredictionRecord {
+  id: string;
+  userId: string;
+  createdAt: string;
+  latestEntryId: string | null;
+  entryCount: number;
+  stateLabel: MentalStateLabel;
+  riskLevel: RiskLevel;
+  confidence: number;
+  burnoutProbability: number;
+  recoveryProbability: number;
+  stressLoad: number;
+  protectiveScore: number;
+  summary: string;
+}
+
 export interface Recommendation {
   id: string;
   source: 'rule' | 'ai' | 'fallback';
@@ -139,6 +155,7 @@ export interface DashboardData {
   viewer: AppUser;
   entries: Entry[];
   analysis: Analysis;
+  predictionHistory: PredictionRecord[];
   recommendations: Recommendation[];
   supportActions: SupportAction[];
   forumPosts: ForumPost[];

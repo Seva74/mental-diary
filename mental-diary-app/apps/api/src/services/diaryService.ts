@@ -2,11 +2,12 @@ import { computeAnalysis } from '../domain/analysis';
 import { buildRecommendations } from '../domain/recommendations';
 import { createAiAdapter, AiAdapter } from '../infrastructure/aiAdapter';
 import { createEntryStore, EntryStore } from '../infrastructure/entryStore';
+import { createPredictionStore, PredictionStore } from '../infrastructure/predictionStore';
 import { createSupportGateway, SupportGateway } from '../infrastructure/supportGateway';
 import { createUserStore, UserStore } from '../infrastructure/userStore';
 import { MentalStateModel } from '../ml/mentalStateModel';
 import { demoArticles, demoEntries, demoForumPosts, demoUser } from '../seed';
-import { AppUser, Article, AuthSessionPayload, DashboardData, Entry, EntryInput, ForumPost, ForumPostInput, SessionContext, SystemMeta } from '../types';
+import { Article, AuthSessionPayload, DashboardData, Entry, EntryInput, ForumPost, ForumPostInput, PredictionRecord, SessionContext, SystemMeta } from '../types';
 
 export class DiaryService {
   private forumPosts: ForumPost[] = [...demoForumPosts].sort((left, right) => right.createdAt.localeCompare(left.createdAt));
@@ -15,6 +16,7 @@ export class DiaryService {
   constructor(
     private readonly store: EntryStore,
     private readonly userStore: UserStore,
+    private readonly predictionStore: PredictionStore,
     private readonly aiAdapter: AiAdapter,
     private readonly supportGateway: SupportGateway,
     private readonly mentalStateModel: MentalStateModel
@@ -23,7 +25,8 @@ export class DiaryService {
   static async create(databaseUrl?: string): Promise<DiaryService> {
     const userStore = await createUserStore(databaseUrl);
     const store = await createEntryStore(databaseUrl);
-    return new DiaryService(store, userStore, createAiAdapter(), createSupportGateway(), new MentalStateModel());
+    const predictionStore = await createPredictionStore(databaseUrl);
+    return new DiaryService(store, userStore, predictionStore, createAiAdapter(), createSupportGateway(), new MentalStateModel());
   }
 
   async bootstrap(): Promise<void> {
@@ -68,10 +71,15 @@ export class DiaryService {
     return [...this.articles];
   }
 
+  async getPredictionHistory(session: SessionContext): Promise<PredictionRecord[]> {
+    return this.predictionStore.listSnapshots(session.user.id, 10);
+  }
+
   async getDashboard(session: SessionContext): Promise<DashboardData> {
     const entries = await this.store.listEntries(session.user.id);
     const modelAssessment = this.mentalStateModel.assess(entries);
     const analysis = computeAnalysis(entries, modelAssessment);
+    await this.predictionStore.saveSnapshot(session.user.id, entries, analysis);
     const aiMessage = await this.aiAdapter.createAdvice(analysis, entries);
     const recommendations = buildRecommendations(analysis, entries, aiMessage);
     const supportActions = await this.supportGateway.findSupportActions(analysis);
@@ -85,6 +93,7 @@ export class DiaryService {
       viewer: session.user,
       entries,
       analysis,
+      predictionHistory: await this.predictionStore.listSnapshots(session.user.id, 10),
       recommendations,
       supportActions,
       forumPosts: await this.getForumPosts(),
@@ -98,12 +107,15 @@ export class DiaryService {
 
   async getAnalysis(session: SessionContext) {
     const entries = await this.store.listEntries(session.user.id);
-    return computeAnalysis(entries, this.mentalStateModel.assess(entries));
+    const analysis = computeAnalysis(entries, this.mentalStateModel.assess(entries));
+    await this.predictionStore.saveSnapshot(session.user.id, entries, analysis);
+    return analysis;
   }
 
   async getRecommendations(session: SessionContext) {
     const entries = await this.store.listEntries(session.user.id);
     const analysis = computeAnalysis(entries, this.mentalStateModel.assess(entries));
+    await this.predictionStore.saveSnapshot(session.user.id, entries, analysis);
     const aiMessage = await this.aiAdapter.createAdvice(analysis, entries);
     return buildRecommendations(analysis, entries, aiMessage);
   }

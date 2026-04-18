@@ -2,6 +2,7 @@ import request from 'supertest';
 import { createApp } from '../src/app';
 import { createAiAdapter } from '../src/infrastructure/aiAdapter';
 import { MemoryEntryStore } from '../src/infrastructure/entryStore';
+import { MemoryPredictionStore } from '../src/infrastructure/predictionStore';
 import { createSupportGateway } from '../src/infrastructure/supportGateway';
 import { MemoryUserStore } from '../src/infrastructure/userStore';
 import { MentalStateModel } from '../src/ml/mentalStateModel';
@@ -11,6 +12,7 @@ const createTestService = async () => {
   const service = new DiaryService(
     new MemoryEntryStore(),
     new MemoryUserStore(),
+    new MemoryPredictionStore(),
     createAiAdapter(),
     createSupportGateway(),
     new MentalStateModel()
@@ -71,6 +73,7 @@ describe('API scenarios', () => {
     expect(createResponse.body.entry.notes).toContain('спокойнее');
     expect(createResponse.body.dashboard.analysis.confidence).toBeGreaterThan(0);
     expect(createResponse.body.dashboard.entries).toHaveLength(1);
+    expect(createResponse.body.dashboard.predictionHistory.length).toBe(1);
   });
 
   it('rejects invalid payloads', async () => {
@@ -139,5 +142,25 @@ describe('API scenarios', () => {
     expect(response.status).toBe(200);
     expect(response.body.length).toBeGreaterThan(0);
     expect(response.body[0].action).toBeDefined();
+  });
+
+  it('returns saved prediction history for the current user', async () => {
+    const app = createApp(await createTestService());
+    const agent = await createAuthorizedAgent(app);
+
+    await agent.post('/api/entries').send({
+      moodScore: 5,
+      energy: 4,
+      sleepHours: 6,
+      stress: 6,
+      notes: 'День был напряженным, но удалось немного восстановиться вечером.',
+      tags: ['stress', 'recovery']
+    });
+
+    const response = await agent.get('/api/predictions');
+
+    expect(response.status).toBe(200);
+    expect(response.body.length).toBeGreaterThan(0);
+    expect(response.body[0].stateLabel).toBeDefined();
   });
 });

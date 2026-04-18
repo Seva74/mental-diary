@@ -49,6 +49,28 @@ export const AnalysisView = ({ dashboard }: AnalysisViewProps) => {
           ))}
         </div>
       </article>
+      <article className="card">
+        <h2>Prediction history</h2>
+        <div className="stack-list">
+          {dashboard.predictionHistory.length === 0 && (
+            <div className="list-item column">
+              <strong>No saved predictions yet</strong>
+              <p>History will appear after the model evaluates real diary entries.</p>
+            </div>
+          )}
+          {dashboard.predictionHistory.map((item) => (
+            <div className="list-item column" key={item.id}>
+              <div className="item-head">
+                <strong>{item.stateLabel}</strong>
+                <span className={item.riskLevel === 'critical' ? 'pill pill-critical' : item.riskLevel === 'high' ? 'pill pill-high' : 'pill pill-low'}>
+                  {Math.round(item.confidence * 100)}%
+                </span>
+              </div>
+              <p>{item.summary}</p>
+            </div>
+          ))}
+        </div>
+      </article>
     </section>
   );
 };
