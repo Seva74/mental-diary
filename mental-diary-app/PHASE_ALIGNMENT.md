@@ -13,6 +13,7 @@
   - Логика анализа: `apps/api/src/domain/analysis.ts`
 - ВИ3 Генерация рекомендаций: реализован.
   - AI adapter + fallback: `apps/api/src/infrastructure/aiAdapter.ts`
+  - OpenRouter/OpenAI API contract implementation
   - API: `GET /api/recommendations`
 - ВИ4 План поддержки и безопасные действия: реализован.
   - Support gateway + fallback: `apps/api/src/infrastructure/supportGateway.ts`
@@ -32,7 +33,7 @@
 
 ## 4) Внешние системы и fallback (phase2)
 
-- AI сервис: OpenAI/HuggingFace через адаптер + fallback.
+- AI сервис: OpenAI/OpenRouter через адаптер + fallback.
 - Support-модуль: remote provider через gateway + локальный fallback.
 
 ## 5) NFR и текущее покрытие

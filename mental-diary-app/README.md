@@ -68,7 +68,7 @@ npm run build
 Скопируйте `.env.example` в `.env` при необходимости.
 
 - `DATABASE_URL` - строка подключения PostgreSQL.
-- `AI_PROVIDER` - `openai`, `huggingface` или `fallback`.
+- `AI_PROVIDER` - `openai`, `openrouter` или `fallback`.
 - `OPENAI_API_KEY`, `OPENAI_MODEL` - параметры OpenAI.
 - `HF_TOKEN`, `HF_MODEL` - параметры Hugging Face.
 - `SUPPORT_PROVIDER` - `local` или `remote`.

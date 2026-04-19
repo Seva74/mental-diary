@@ -21,7 +21,7 @@ export const createOpenAiProvider = (apiKey: string, model: string): AiProviderC
           messages: [
             {
               role: 'system',
-              content: 'You are a supportive mental well-being assistant. Keep the answer short, practical, and non-diagnostic.'
+              content: 'You are an insightful psychological assistant. Analyze the user\'s notes and metrics to find behavioral anomalies, contradictions, or hidden distress patterns (not just trigger words). Keep the answer short, practical, and non-diagnostic. Reply in the same language as the notes.'
             },
             {
               role: 'user',
@@ -46,28 +46,39 @@ export const createOpenAiProvider = (apiKey: string, model: string): AiProviderC
   }
 });
 
-export const createHuggingFaceProvider = (token: string, model: string): AiProviderClient => ({
-  provider: `huggingface:${model}`,
+export const createOpenRouterProvider = (apiKey: string, model: string): AiProviderClient => ({
+  provider: `openrouter:${model}`,
   async createAdvice(analysis: Analysis, entries: Entry[]): Promise<string> {
     try {
-      const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${apiKey}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          inputs: `${buildAdvicePrompt(analysis, entries)}\n\nGive one short supportive recommendation.`
+          model,
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an insightful psychological assistant. Analyze the user\'s notes and metrics to find behavioral anomalies, contradictions, or hidden distress patterns (not just trigger words). Keep the answer short, practical, and non-diagnostic. Reply in the same language as the notes.'
+            },
+            {
+              role: 'user',
+              content: buildAdvicePrompt(analysis, entries)
+            }
+          ]
         })
       });
 
       if (!response.ok) {
-        throw new Error(`Hugging Face request failed with status ${response.status}`);
+        throw new Error(`OpenRouter request failed with status ${response.status}`);
       }
 
-      const payload = await response.json() as Array<{ generated_text?: string }>;
-      return payload[0]?.generated_text?.trim() || fallbackRecommendation(analysis);
-    } catch {
+      const payload = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
+      return payload.choices?.[0]?.message?.content?.trim() || fallbackRecommendation(analysis);
+    } catch (err) {
+      console.error('[AI Provider Error] OpenRouter failed:', err);
       return fallbackRecommendation(analysis);
     }
   }
