@@ -21,7 +21,7 @@ export const createOpenAiProvider = (apiKey: string, model: string): AiProviderC
           messages: [
             {
               role: 'system',
-              content: 'You are an insightful psychological assistant. Analyze the user\'s notes and metrics to find behavioral anomalies, contradictions, or hidden distress patterns (not just trigger words). Keep the answer short, practical, and non-diagnostic. Reply in the same language as the notes.'
+              content: 'Вы — внимательный помощник по психологическому самонаблюдению. Обращайтесь к пользователю по-русски. Не возвращайте и не цитируйте входные данные (записи/метрики). Не приводите список параметров или строки записей — дайте только короткий, практический, поддерживающий и недиагностический совет, адресованный пользователю. Сформулируйте одно конкретное действие, которое можно выполнить сейчас или в ближайшие 24 часа. Если в тексте есть фразы о причинении себе вреда, мягко предложите обратиться к специалисту или доверенному человеку и укажите контакты экстренной помощи при немедленной опасности.'
             },
             {
               role: 'user',
@@ -29,7 +29,7 @@ export const createOpenAiProvider = (apiKey: string, model: string): AiProviderC
             }
           ],
           temperature: 0.4,
-          max_tokens: 120
+          max_tokens: 150
         })
       });
 
@@ -61,7 +61,7 @@ export const createOpenRouterProvider = (apiKey: string, model: string): AiProvi
           messages: [
             {
               role: 'system',
-              content: 'You are an insightful psychological assistant. Analyze the user\'s notes and metrics to find behavioral anomalies, contradictions, or hidden distress patterns (not just trigger words). Keep the answer short, practical, and non-diagnostic. Reply in the same language as the notes.'
+              content: 'Вы — внимательный помощник по психологическому самонаблюдению. Обращайтесь к пользователю по-русски. Не возвращайте и не цитируйте входные данные (записи/метрики). Не приводите список параметров или строки записей — дайте только короткий, практический, поддерживающий и недиагностический совет, адресованный пользователю. Сформулируйте одно конкретное действие, которое можно выполнить сейчас или в ближайшие 24 часа. Если в тексте есть фразы о причинении себе вреда, мягко предложите обратиться к специалисту или доверенному человеку и укажите контакты экстренной помощи при немедленной опасности.'
             },
             {
               role: 'user',
