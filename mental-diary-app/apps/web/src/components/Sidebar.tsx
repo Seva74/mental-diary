@@ -30,10 +30,6 @@ export const Sidebar = ({ activeView, onSelectView }: SidebarProps) => {
           </button>
         ))}
       </nav>
-      <div className="menu-footer">
-        <span>Alt+1-6 для быстрой навигации</span>
-        <span>Тема и синхронизация в шапке</span>
-      </div>
     </aside>
   );
 };

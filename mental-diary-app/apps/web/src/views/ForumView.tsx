@@ -14,7 +14,7 @@ export const ForumView = ({ dashboard, forumForm, onForumFieldChange, onSubmit, 
   return (
     <section className="split-grid">
       <article className="card">
-        <h2>ВИ5: Форум</h2>
+        <h2>Форум</h2>
         <form className="form" onSubmit={onSubmit}>
           <label><span>Имя</span><input type="text" maxLength={40} value={forumForm.authorName} onChange={(event) => onForumFieldChange('authorName', event.target.value)} required /></label>
           <label>

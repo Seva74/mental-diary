@@ -1,7 +1,7 @@
 export type RiskLevel = 'low' | 'moderate' | 'high' | 'critical';
 export type MentalStateLabel = 'stable' | 'fatigued' | 'stressed' | 'burnout-risk' | 'recovery';
 
-export interface ModelFeatureSnapshot {
+export interface AnalysisFeatureSnapshot {
   averageMood: number;
   averageEnergy: number;
   averageSleepHours: number;
@@ -16,7 +16,7 @@ export interface ModelFeatureSnapshot {
   volatilityScore: number;
 }
 
-export interface PredictionFactor {
+export interface AnalysisFactor {
   id: string;
   label: string;
   direction: 'positive' | 'negative';
@@ -50,12 +50,12 @@ export interface Analysis {
   recoveryProbability: number;
   stressLoad: number;
   protectiveScore: number;
-  factors: PredictionFactor[];
-  featureSnapshot: ModelFeatureSnapshot;
+  factors: AnalysisFactor[];
+  featureSnapshot: AnalysisFeatureSnapshot;
   summary: string;
 }
 
-export interface PredictionRecord {
+export interface AnalysisHistoryRecord {
   id: string;
   userId: string;
   createdAt: string;
@@ -88,8 +88,7 @@ export interface UserSession {
 }
 
 export interface Recommendation {
-  id: string;
-  source: 'rule' | 'ai' | 'fallback';
+  source: 'rule' | 'analysis' | 'fallback';
   title: string;
   detail: string;
   action: string;
@@ -124,13 +123,13 @@ export interface Article {
 
 export interface DashboardData {
   storageMode: 'memory' | 'postgres';
-  aiProvider: string;
+  analysisProvider: string;
   supportProvider: string;
   system: SystemMeta;
   viewer: AppUser;
   entries: Entry[];
   analysis: Analysis;
-  predictionHistory: PredictionRecord[];
+  analysisHistory: AnalysisHistoryRecord[];
   recommendations: Recommendation[];
   supportActions: SupportAction[];
   forumPosts: ForumPost[];
@@ -152,9 +151,9 @@ export interface IntegrationStatus {
 
 export interface SystemMeta {
   storageMode: 'memory' | 'postgres';
-  ai: IntegrationStatus;
+  analysis: IntegrationStatus;
   support: IntegrationStatus;
-  ml: {
+  analyticsCore: {
     provider: string;
     mode: 'local-trained';
     configured: true;

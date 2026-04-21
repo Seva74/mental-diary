@@ -35,7 +35,7 @@ export const Topbar = ({
       </div>
       <div className="top-actions">
         <span className="pill pill-neutral">БД {dashboard?.storageMode || '...'}</span>
-        <span className="pill pill-neutral">AI {dashboard ? dashboard.system.ai.mode : '...'}</span>
+        <span className="pill pill-neutral">Аналитика {dashboard ? dashboard.system.analysis.mode : '...'}</span>
         <span className="pill pill-neutral">Поддержка {dashboard ? dashboard.system.support.mode : '...'}</span>
         <span className={`sync-pill ${syncToneClass}`}>{syncingOffline ? 'Синхронизация...' : pendingOfflineEntries > 0 ? `${pendingOfflineEntries} локальных черновика` : 'Все синхронизировано'}</span>
         {pendingOfflineEntries > 0 && (

@@ -14,7 +14,7 @@ export const SupportView = ({ dashboard }: SupportViewProps) => {
   return (
     <section className="single-column">
       <article className="card">
-        <h2>ВИ4: План поддержки и безопасные действия</h2>
+        <h2>План поддержки и безопасные действия</h2>
         <p>Это не медицинский маршрут и не список врачей. Здесь собраны короткие действия, которые помогают стабилизироваться, не перегружая систему.</p>
         <div className="stack-list" style={{ marginTop: '16px' }}>
           {dashboard.supportActions.map((item) => (

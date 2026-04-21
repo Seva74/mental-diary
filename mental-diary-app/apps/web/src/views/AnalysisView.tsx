@@ -8,7 +8,7 @@ export const AnalysisView = ({ dashboard }: AnalysisViewProps) => {
   return (
     <section className="split-grid">
       <article className="card">
-        <h2>AI analysis</h2>
+        <h2>Анализ состояния</h2>
         <p>{dashboard.analysis.summary}</p>
         <div className="metric-grid">
           <div className="metric"><span>state</span><strong>{dashboard.analysis.stateLabel}</strong></div>
@@ -50,15 +50,15 @@ export const AnalysisView = ({ dashboard }: AnalysisViewProps) => {
         </div>
       </article>
       <article className="card">
-        <h2>Prediction history</h2>
+        <h2>История оценок</h2>
         <div className="stack-list">
-          {dashboard.predictionHistory.length === 0 && (
+          {dashboard.analysisHistory.length === 0 && (
             <div className="list-item column">
-              <strong>No saved predictions yet</strong>
-              <p>History will appear after the model evaluates real diary entries.</p>
+              <strong>Пока нет сохраненных оценок</strong>
+              <p>История появится после нескольких реальных записей в дневнике.</p>
             </div>
           )}
-          {dashboard.predictionHistory.map((item) => (
+          {dashboard.analysisHistory.map((item) => (
             <div className="list-item column" key={item.id}>
               <div className="item-head">
                 <strong>{item.stateLabel}</strong>

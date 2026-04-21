@@ -133,9 +133,9 @@ export const DiaryView = ({
           <div className="tips-text">Если нет сил писать подробно, достаточно трех полей: настроение, стресс и одна заметка о событии.</div>
         </div>
 
-        <div className="ai-insight-card" style={{ borderRadius: '16px', padding: '18px' }}>
-          <div className="aic-badge"><div className="aic-dot"></div>AI-подсказка для записи</div>
-          <div className="aic-text" style={{ fontSize: '13px' }}>«Ты упомянул прогулку — это хороший сигнал для будущих советов и рекомендаций.»</div>
+        <div className="insight-card-soft" style={{ borderRadius: '16px', padding: '18px' }}>
+          <div className="insight-badge"><div className="insight-dot"></div>Подсказка для записи</div>
+          <div className="insight-text" style={{ fontSize: '13px' }}>«Ты упомянул прогулку - это хороший маркер, который стоит отслеживать в следующих записях.»</div>
         </div>
       </div>
     </div>

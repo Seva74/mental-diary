@@ -97,7 +97,7 @@ export const HomeView = ({ dashboard, onOpenDiary, onOpenAnalysis }: HomeViewPro
             <span className="action">{insight.action}</span>
           </div>
           <div className="system-notes">
-            <p>AI: {dashboard.system.ai.mode} · {dashboard.system.ai.provider}</p>
+            <p>Аналитика: {dashboard.system.analysis.mode} · {dashboard.system.analysis.provider}</p>
             <p>Поддержка: {dashboard.system.support.mode} · {dashboard.system.support.provider}</p>
             <p>Хранилище: {dashboard.system.storageMode}</p>
           </div>
@@ -135,12 +135,12 @@ export const HomeView = ({ dashboard, onOpenDiary, onOpenAnalysis }: HomeViewPro
         <article className="card">
           <h2>Интеграции и контракт</h2>
           <div className="integration-grid">
-            <div className="integration-chip"><strong>AI</strong><span>{dashboard.system.ai.mode}</span><div className="meta">{dashboard.system.ai.provider}</div></div>
+            <div className="integration-chip"><strong>Аналитика</strong><span>{dashboard.system.analysis.mode}</span><div className="meta">{dashboard.system.analysis.provider}</div></div>
             <div className="integration-chip"><strong>Поддержка</strong><span>{dashboard.system.support.mode}</span><div className="meta">{dashboard.system.support.provider}</div></div>
             <div className="integration-chip"><strong>Хранилище</strong><span>{dashboard.system.storageMode}</span><div className="meta">{dashboard.analysis.entryCount} записей</div></div>
           </div>
           <div className="system-notes">
-            <p>{dashboard.system.ai.description}</p>
+            <p>{dashboard.system.analysis.description}</p>
             <p>{dashboard.system.support.description}</p>
           </div>
         </article>

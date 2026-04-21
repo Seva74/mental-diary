@@ -8,7 +8,7 @@ export const BlogView = ({ dashboard }: BlogViewProps) => {
   return (
     <section className="single-column">
       <article className="card">
-        <h2>ВИ6: Блог</h2>
+        <h2>Блог</h2>
         <div className="stack-list">
           {dashboard.articles.map((article) => (
             <div className="list-item column" key={article.id}>

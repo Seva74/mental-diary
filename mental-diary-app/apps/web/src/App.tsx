@@ -7,7 +7,6 @@ import { useDashboardData } from './hooks/useDashboardData';
 import { useOfflineEntryQueue } from './hooks/useOfflineEntryQueue';
 import { useThemeMode } from './hooks/useThemeMode';
 import type { ViewMode } from './appTypes';
-import { formatLongDate } from './lib/date';
 import { AnalysisView } from './views/AnalysisView';
 import { BlogView } from './views/BlogView';
 import { DiaryView } from './views/DiaryView';
@@ -178,8 +177,6 @@ const App = () => {
     }
   };
 
-  const subtitle = `ВИ1-ВИ4 реализованы как ядро, ВИ5-ВИ6 как прототипы · ${formatLongDate(new Date())}`;
-
   return (
     <main className="screen">
       <Sidebar activeView={viewMode} onSelectView={setViewMode} />
@@ -187,7 +184,7 @@ const App = () => {
       <section className="main">
         <Topbar
           title="Mental Diary"
-          subtitle={`${subtitle} · Alt+1-6 для навигации`}
+          subtitle=""
           dashboard={dashboard}
           theme={theme}
           onToggleTheme={toggleTheme}

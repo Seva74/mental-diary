@@ -1,8 +1,53 @@
-import { AuthSessionPayload, DashboardData, EntryFormState, ForumFormState, SystemMeta } from './types';
+import {
+  AuthSessionPayload,
+  DashboardData,
+  EntryFormState,
+  ForumFormState,
+  IntegrationStatus,
+  SystemMeta,
+  type AnalysisHistoryRecord,
+  type Recommendation
+} from './types';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api';
 const sessionStorageKey = 'mental-diary-session-token';
 let activeSessionToken: string | null = null;
+
+type RawRecommendation = Omit<Recommendation, 'source'> & {
+  source: 'rule' | 'ai' | 'analysis' | 'fallback';
+};
+
+type RawSystemMeta = Omit<SystemMeta, 'analysis' | 'analyticsCore'> & {
+  ai: IntegrationStatus;
+  ml: SystemMeta['analyticsCore'];
+};
+
+type RawDashboardData = Omit<DashboardData, 'analysisProvider' | 'system' | 'recommendations' | 'analysisHistory'> & {
+  aiProvider: string;
+  predictionHistory: AnalysisHistoryRecord[];
+  recommendations: RawRecommendation[];
+  system: RawSystemMeta;
+};
+
+const normalizeRecommendation = (item: RawRecommendation): Recommendation => ({
+  ...item,
+  source: item.source === 'ai' ? 'analysis' : item.source
+});
+
+const normalizeSystemMeta = (system: RawSystemMeta): SystemMeta => ({
+  storageMode: system.storageMode,
+  analysis: system.ai,
+  support: system.support,
+  analyticsCore: system.ml
+});
+
+const normalizeDashboard = (dashboard: RawDashboardData): DashboardData => ({
+  ...dashboard,
+  analysisProvider: dashboard.aiProvider,
+  analysisHistory: dashboard.predictionHistory,
+  recommendations: dashboard.recommendations.map(normalizeRecommendation),
+  system: normalizeSystemMeta(dashboard.system)
+});
 
 const buildUrl = (path: string) => {
   if (baseUrl.endsWith('/')) {
@@ -120,12 +165,18 @@ const requestJson = async <T>(path: string, options?: RequestInit): Promise<T> =
   return response.json() as Promise<T>;
 };
 
-export const getDashboard = () => requestJson<DashboardData>('/dashboard');
+export const getDashboard = async () => {
+  const dashboard = await requestJson<RawDashboardData>('/dashboard');
+  return normalizeDashboard(dashboard);
+};
 
-export const getSystemMeta = () => requestPublicJson<SystemMeta>('/system/meta');
+export const getSystemMeta = async () => {
+  const meta = await requestPublicJson<RawSystemMeta>('/system/meta');
+  return normalizeSystemMeta(meta);
+};
 
 export const createEntry = (form: EntryFormState) =>
-  requestJson<{ entry: DashboardData['entries'][number]; dashboard: DashboardData }>('/entries', {
+  requestJson<{ entry: DashboardData['entries'][number]; dashboard: RawDashboardData }>('/entries', {
     method: 'POST',
     body: JSON.stringify({
       moodScore: Number(form.moodScore),
@@ -138,7 +189,10 @@ export const createEntry = (form: EntryFormState) =>
         .map((tag) => tag.trim())
         .filter(Boolean)
     })
-  });
+  }).then((payload) => ({
+    entry: payload.entry,
+    dashboard: normalizeDashboard(payload.dashboard)
+  }));
 
 export const createForumPost = (form: ForumFormState) =>
   requestPublicJson<{ post: DashboardData['forumPosts'][number]; posts: DashboardData['forumPosts'] }>('/forum/posts', {

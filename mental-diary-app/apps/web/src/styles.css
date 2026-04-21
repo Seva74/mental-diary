@@ -1066,14 +1066,14 @@ button:hover {
   line-height: 1.6;
 }
 
-.ai-insight-card {
+.insight-card-soft {
   background: linear-gradient(135deg, rgba(223, 216, 250, 0.9), rgba(220, 239, 229, 0.9));
   border-radius: 20px;
   padding: 20px 22px;
   border: 1px solid var(--border);
 }
 
-.aic-badge {
+.insight-badge {
   display: flex;
   align-items: center;
   gap: 5px;
@@ -1085,7 +1085,7 @@ button:hover {
   margin-bottom: 10px;
 }
 
-.aic-dot {
+.insight-dot {
   width: 6px;
   height: 6px;
   background: var(--lavender);
@@ -1106,7 +1106,7 @@ button:hover {
   }
 }
 
-.aic-text {
+.insight-text {
   font-family: 'Playfair Display', serif;
   font-size: 14px;
   font-style: italic;
@@ -1193,7 +1193,7 @@ button:hover {
   .diary-form-card,
   .past-entries,
   .tips-card,
-  .ai-insight-card {
+  .insight-card-soft {
     padding: 16px;
     border-radius: 18px;
   }
