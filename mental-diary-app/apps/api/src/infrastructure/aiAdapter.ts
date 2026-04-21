@@ -1,5 +1,5 @@
 import { Analysis, Entry } from '../types';
-import { createFallbackProvider, createHuggingFaceProvider, createOpenAiProvider, AiProviderClient } from './aiProviders';
+import { createFallbackProvider, createOpenRouterProvider, createOpenAiProvider, AiProviderClient } from './aiProviders';
 
 export interface AiAdapter {
   provider: string;
@@ -13,8 +13,8 @@ export const createAiAdapter = (): AiAdapter => {
     return createOpenAiProvider(process.env.OPENAI_API_KEY, process.env.OPENAI_MODEL || 'gpt-4o-mini');
   }
 
-  if (provider === 'huggingface' && process.env.HF_TOKEN) {
-    return createHuggingFaceProvider(process.env.HF_TOKEN, process.env.HF_MODEL || 'microsoft/Phi-3-mini-4k-instruct');
+  if (provider === 'openrouter' && process.env.OPENROUTER_API_KEY) {
+    return createOpenRouterProvider(process.env.OPENROUTER_API_KEY, process.env.OPENROUTER_MODEL || 'openrouter/free');
   }
 
   return createFallbackProvider();

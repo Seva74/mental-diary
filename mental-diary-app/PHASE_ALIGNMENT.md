@@ -13,6 +13,7 @@
   - Логика анализа: `apps/api/src/domain/analysis.ts`
 - ВИ3 Генерация рекомендаций: реализован.
   - AI adapter + fallback: `apps/api/src/infrastructure/aiAdapter.ts`
+  - OpenAI/OpenRouter provider chain + local fallback
   - API: `GET /api/recommendations`
 - ВИ4 План поддержки и безопасные действия: реализован.
   - Support gateway + fallback: `apps/api/src/infrastructure/supportGateway.ts`
@@ -29,10 +30,11 @@
 - application: `apps/api/src/app.ts`, `apps/api/src/services/*`
 - domain: `apps/api/src/domain/*`
 - infrastructure: `apps/api/src/infrastructure/*`
+- machine learning: `apps/api/src/ml/*`
 
 ## 4) Внешние системы и fallback (phase2)
 
-- AI сервис: OpenAI/HuggingFace через адаптер + fallback.
+- AI сервис: OpenAI/OpenRouter через адаптер + fallback.
 - Support-модуль: remote provider через gateway + локальный fallback.
 
 ## 5) NFR и текущее покрытие
@@ -46,7 +48,7 @@
 
 Ниже пункты, которые в фазовых документах зафиксированы как целевые, но в прототипе пока частично/упрощенно:
 
-- Регистрация/авторизация пользователя (phase1 функциональные требования): не реализована, используется демо-пользователь.
+- Полноценные password-based аккаунты и роли: не реализованы, используется гостевой session-based режим.
 - Полноценная роль администратора: не реализована, есть только пользовательские сценарии.
 - Реальная интеграция с внешним support-контентом: есть интерфейс и remote gateway, но по умолчанию используется локальный fallback.
 - Полная безопасность production-уровня (JWT, GDPR-процедуры, audit): частично, не полный production контур.
@@ -55,7 +57,7 @@
 
 Для устранения противоречий с фазовыми требованиями в следующем шаге приоритетно реализовать:
 
-1. Базовую auth подсистему (signup/login + JWT + user scope).
-2. Персонификацию данных (entries/forum по userId из токена).
+1. Если нужен полноценный multi-user сценарий, добавить signup/login + JWT + роли поверх текущих guest-сессий.
+2. Персонификацию данных forum/entries при переходе к пользовательским аккаунтам.
 3. Контур ролей (`user`, `admin`) хотя бы в минимальном API виде.
 4. Подключение реального provider для support-контента с контрактными тестами.

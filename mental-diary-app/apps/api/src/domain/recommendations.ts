@@ -116,18 +116,20 @@ export const buildRecommendations = (analysis: Analysis, entries: Entry[], aiMes
 };
 
 export const buildAdvicePrompt = (analysis: Analysis, entries: Entry[]) => {
-  const latestEntry = entries[0];
+  const recentEntries = entries.slice(0, 7).map((e, index) => 
+    `Entry ${index + 1} (${e.createdAt.split('T')[0]}): Mood ${e.moodScore}/10, Stress ${e.stress}/10, Sleep ${e.sleepHours}h.\nText: "${e.notes || '[No text]'}"`
+  ).join('\n\n');
 
   return [
     `Risk level: ${analysis.riskLevel}`,
     `State label: ${analysis.stateLabel}`,
     `Confidence: ${analysis.confidence}`,
-    `Average mood: ${analysis.averageMood}`,
-    `Average stress: ${analysis.averageStress}`,
-    `Average sleep hours: ${analysis.averageSleepHours}`,
-    `Burnout probability: ${analysis.burnoutProbability}`,
+    `Average mood: ${analysis.averageMood.toFixed(2)}`,
+    `Average stress: ${analysis.averageStress.toFixed(2)}`,
+    `Average sleep hours: ${analysis.averageSleepHours.toFixed(1)}`,
+    `Burnout probability: ${(analysis.burnoutProbability * 100).toFixed(0)}%`,
     `Main factors: ${analysis.factors.map((factor) => factor.label).join(', ') || 'none'}`,
-    latestEntry ? `Latest note: ${latestEntry.notes}` : 'Latest note: none'
+    `\nRecent User Entries:\n${recentEntries}`
   ].join('\n');
 };
 

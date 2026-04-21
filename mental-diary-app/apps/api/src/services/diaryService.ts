@@ -132,7 +132,7 @@ export class DiaryService {
         configured: aiMode === 'external',
         description: aiMode === 'external'
           ? 'AI provider is active and ready for external API integration.'
-          : 'Rule-based fallback is active. Backend can later connect OpenAI or Hugging Face here.',
+          : 'Rule-based fallback is active. Backend can later connect OpenAI or OpenRouter here.',
         contract: [
           'analysis.riskLevel',
           'analysis.averageMood',
